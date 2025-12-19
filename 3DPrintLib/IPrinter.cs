@@ -1,4 +1,5 @@
 ﻿using _3DPrintLib;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,12 +8,6 @@ namespace PrintLib
 {
     public interface IPrinter
     {
-
-        /// <summary>
-        /// Eventhandler for Giving printer info live
-        /// </summary>
-        public event EventHandler<PrinterEventargs> OnStatusChanged;
-
         /// <summary>
         /// Prints the file. File must have been uploaded before calling this.
         /// </summary>
@@ -46,10 +41,15 @@ namespace PrintLib
         public Task UploadAsync(string FilePath);
 
         /// <summary>
-        /// Gives your the printer information imidiatly
+        /// Gives your the full printer information
+        /// </summary>
+        /// <returns>Full printer information</returns>
+        public Task<PrinterStatus> GetStatusAsync();
+
+        /// <summary>
+        /// Gives you only the status of a print.
         /// </summary>
         /// <returns></returns>
-        public Task<PrinterEventargs> GetStatusAsync();
-
+        public Task<JobStatus> GetJobStatusAsync();
     }
 }
