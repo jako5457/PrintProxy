@@ -4,7 +4,14 @@ using _3DPrintLib.OctoPrint;
 using Dumpify;
 using Microsoft.Extensions.DependencyInjection;
 using PrintLib;
+using System.Reflection;
 
+
+var services = new ServiceCollection();
+
+services.AddHttpClient();
+
+#region OctoPrint
 
 var options = new OctoPrintOptions()
 {
@@ -12,73 +19,100 @@ var options = new OctoPrintOptions()
     ApiKey = "NrtXK0RlwAw0-WqJ1_tUHzIZxTiVo-Qvz7xBzwmAJjg"
 };
 
-var services = new ServiceCollection();
-
-services.AddHttpClient();
 services.AddTransient<IPrinter, OctoPrintPrinter>(sp => new OctoPrintPrinter(sp.GetRequiredService<IHttpClientFactory>(), options));
+
+#endregion OctoPrint
 
 var provider = services.BuildServiceProvider();
 
 Console.WriteLine("Printer Test");
 
-await Task.Delay(10000);
-
 var printer = provider.GetRequiredService<IPrinter>();
 
-Console.WriteLine("______ GET INFO ______");
-var info = await printer.GetStatusAsync();
+await GetInfo(printer);
+//await UploadFile(printer);
 
-info.Dump();
+//Console.WriteLine("______ GET JOB Before Print______");
+//await GetPrinterJobDumpAsync(printer);
+//await Task.Delay(10000);
 
-Console.WriteLine("Additional info:");
-foreach (var item in info.info)
+//await StartPrint(printer);
+//await PausePrint(printer);
+//await ResumePrint(printer);
+//await StopPrint(printer);
+
+
+
+async Task GetInfo(IPrinter printer)
 {
-    Console.WriteLine($"- {item.Key}: {item.Value}");
+    Console.WriteLine("______ GET INFO ______");
+    var info = await printer.GetStatusAsync();
+
+    info.Dump();
+
+    Console.WriteLine("Additional info:");
+    foreach (var item in info.info)
+    {
+        Console.WriteLine($"- {item.Key}: {item.Value}");
+    }
+
+    await Task.Delay(10000);
 }
 
-await Task.Delay(10000);
+async Task UploadFile(IPrinter Printer)
+{
+    Console.WriteLine("______ Uploading TestFile.gcode  ______");
 
-Console.WriteLine("______ Uploading TestFile.gcode  ______");
+    var printer = provider.GetRequiredService<IPrinter>();
 
-await printer.UploadAsync("TestFile.gcode");
+    await printer.UploadAsync("TestFile.gcode");
 
-Console.WriteLine("______ Upload Completed. ______");
+    Console.WriteLine("______ Upload Completed. ______");
 
-Console.WriteLine("______ GET JOB Before Print______");
-await GetPrinterJobDumpAsync(printer);
+    await Task.Delay(10000);
+}
 
-await Task.Delay(10000);
+async Task StartPrint(IPrinter printer)
+{
+    Console.WriteLine("______ Start Print ______");
 
-Console.WriteLine("______ Start Print ______");
+    await printer.StartAsync("TestFile.gcode");
 
-await printer.StartAsync("TestFile.gcode");
+    await GetPrinterJobDumpAsync(printer);
 
-await GetPrinterJobDumpAsync(printer);
+    await Task.Delay(20000);
+}
 
-await Task.Delay(20000);
+async Task PausePrint(IPrinter printer)
+{
+    Console.WriteLine("______ Pause Print ______");
 
-Console.WriteLine("______ Pause Print ______");
+    await printer.PauseAsync();
 
-await printer.PauseAsync();
+    await GetPrinterJobDumpAsync(printer);
 
-await GetPrinterJobDumpAsync(printer);
+    await Task.Delay(20000);
+}
 
-await Task.Delay(20000);
+async Task ResumePrint(IPrinter printer)
+{
+    Console.WriteLine("______ Continue Print ______");
 
-Console.WriteLine("______ Continue Print ______");
+    await printer.ContinueAsync();
 
-await printer.ContinueAsync();
+    await GetPrinterJobDumpAsync(printer);
 
-await GetPrinterJobDumpAsync(printer);
+    await Task.Delay(20000);
+}
 
-await Task.Delay(20000);
+async Task StopPrint(IPrinter printer)
+{
+    Console.WriteLine("______ Stop Print ______");
 
-Console.WriteLine("______ Stop Print ______");
+    await printer.StopAsync();
 
-await printer.StopAsync();
-
-await GetPrinterJobDumpAsync(printer);
-
+    await GetPrinterJobDumpAsync(printer);
+}
 
 async Task GetPrinterJobDumpAsync(IPrinter printer)
 {
