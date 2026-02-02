@@ -1,9 +1,12 @@
 ﻿using _3DPrintLib.FlashForge.FlashDtos;
+using _3DPrintLib.FlashForge.FlashDtos.Commands;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PrintLib;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
@@ -12,50 +15,155 @@ namespace _3DPrintLib.FlashForge
     public class FlashforgePrinter : IPrinter
     {
         private readonly IHttpClientFactory _ClientFactory;
+        private readonly ILogger<FlashforgePrinter> _Logger;
         private readonly FlashforgeOptions _Options;
 
-        private AuthTokenResponse AuthToken = null!; 
-
-        public FlashforgePrinter(IHttpClientFactory clientFactory,FlashforgeOptions options)
+        public FlashforgePrinter(IHttpClientFactory clientFactory, ILogger<FlashforgePrinter> logger, FlashforgeOptions options)
         {
             _ClientFactory = clientFactory;
+            _Logger = logger;
             _Options = options;
         }
 
         public async Task ContinueAsync()
         {
-            using var client = await CreateAuthenticatedClientAsync();
-            throw new NotImplementedException();
-        }
+            try
+            {
+                var client = SetupClient();
+
+                var request = _Options.SetupRequest<FlashforgeControlRequest<FlashJobControlArgs>>();
+
+                request.PayLoad.Cmd = "jobCtl_cmd";
+                request.PayLoad.Args.Action = FlashJobAction.Continue;
+
+                var result = await client.PostAsJsonAsync("/printGcode", request);
+
+                result.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, "Error while trying continue a print" + e.Message);
+            }
+        }  
 
         public async Task<JobStatus> GetJobStatusAsync()
         {
-            using var client = await CreateAuthenticatedClientAsync();
-            throw new NotImplementedException();
+            try
+            {
+                var client = SetupClient();
+
+                var request = _Options.SetupRequest<FlashforgeAuthRequest>();
+
+                var result = await client.PostAsJsonAsync("/detail", request);
+
+                result.EnsureSuccessStatusCode();
+
+                var Response = await result.Content.ReadFromJsonAsync<FlashforgeDetailResponse>();
+
+                return new JobStatus()
+                {
+                    Status = Response?.detail?.Status ?? "N/A",
+                    Progress = Response?.detail?.PrintProgress ?? 0
+                };
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, "Error while trying to get printer details: " + e.Message);
+                return new PrinterStatus();
+            }
         }
 
         public async Task<PrinterStatus> GetStatusAsync()
         {
-            using var client = await CreateAuthenticatedClientAsync();
-            throw new NotImplementedException();
+            try
+            {
+                var client = SetupClient();
+
+                var request = _Options.SetupRequest<FlashforgeAuthRequest>();
+
+                var result = await client.PostAsJsonAsync("/detail", request);
+
+                result.EnsureSuccessStatusCode();
+
+                var Response = await result.Content.ReadFromJsonAsync<FlashforgeDetailResponse>();
+
+                return new PrinterStatus()
+                {
+                    PrinterName = Response?.detail?.Name ?? "Flashforge Printer",
+                    FileName = Response?.detail?.PrintFileName ?? "N/A",
+                    FileThumbnail = Response?.detail?.PrintFileThumbUrl ?? null,
+                    PrinterCam = Response?.detail?.CameraStreamUrl ?? null,
+                    Status = Response?.detail?.Status ?? "N/A",
+                    Progress = Response?.detail?.PrintProgress ?? 0
+                };
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, "Error while trying to get printer details: " + e.Message);
+                return new PrinterStatus();
+            }
         }
 
         public async Task PauseAsync()
         {
-            using var client = await CreateAuthenticatedClientAsync();
-            throw new NotImplementedException();
+            try
+            {
+                var client = SetupClient();
+
+                var request = _Options.SetupRequest<FlashforgeControlRequest<FlashJobControlArgs>>();
+
+                request.PayLoad.Cmd = "jobCtl_cmd";
+                request.PayLoad.Args.Action = FlashJobAction.Pause;
+
+                var result = await client.PostAsJsonAsync("/printGcode", request);
+
+                result.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, "Error while trying pause a print" + e.Message);
+            }
         }
 
         public async Task StartAsync(string fileName)
         {
-            using var client = await CreateAuthenticatedClientAsync();
-            throw new NotImplementedException();
+            try
+            {
+                var client = SetupClient();
+
+                var request = _Options.SetupRequest<FlashForgePrintRequest>();
+
+                request.FileName = fileName;
+
+                var result = await client.PostAsJsonAsync("/printGcode", request);
+
+                result.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, "Error while trying start a print" + e.Message);
+            }
         }
 
         public async Task StopAsync()
         {
-            using var client = await CreateAuthenticatedClientAsync();
-            throw new NotImplementedException();
+            try
+            {
+                var client = SetupClient();
+
+                var request = _Options.SetupRequest<FlashforgeControlRequest<FlashJobControlArgs>>();
+
+                request.PayLoad.Cmd = "jobCtl_cmd";
+                request.PayLoad.Args.Action = FlashJobAction.Cancel;
+
+                var result = await client.PostAsJsonAsync("/printGcode", request);
+
+                result.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, "Error while trying stop a print" + e.Message);
+            }
         }
 
         public async Task UploadAsync(string FilePath)
@@ -63,54 +171,13 @@ namespace _3DPrintLib.FlashForge
             throw new NotImplementedException();
         }
 
-        private async Task<HttpClient> CreateAuthenticatedClientAsync()
+        private HttpClient SetupClient()
         {
-            if (DateTime.UtcNow < DateTime.UtcNow.AddSeconds(AuthToken.ExpiresIn))
-            {
-                await AuthenticateAsync();
-            }
-
-            if (AuthToken == null)
-            {
-                await AuthenticateAsync();
-            }
-
-            HttpClient client = _ClientFactory.CreateClient();
+            var client = _ClientFactory.CreateClient();
             client.BaseAddress = new Uri(_Options.FullAddress);
 
-            if (AuthToken != null)
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AuthToken.Token);
-            }
-            
             return client;
         }
 
-        private async Task AuthenticateAsync()
-        {
-            using HttpClient client = _ClientFactory.CreateClient();
-
-            client.BaseAddress = new Uri(_Options.FullAddress);
-
-            var payloadJson = JsonSerializer.Serialize(new { code = _Options.AccessCode });
-            var content = new StringContent(payloadJson);            
-
-            var result = await client.PostAsync("/api/auth/login",content);
-            result.EnsureSuccessStatusCode();
-
-            var response = await result.Content.ReadAsStringAsync();
-
-            if (response != null)
-            {
-                var data = JsonSerializer.Deserialize<ApiResponse<AuthTokenResponse>>(response);
-
-                if (data?.Success ?? true)
-                {
-                    throw new Exception("Authentication Failed.");
-                }
-
-                AuthToken = data.Data;
-            }
-        }
     }
 }

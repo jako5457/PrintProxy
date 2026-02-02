@@ -17,8 +17,18 @@ namespace _3DPrintLib
         public string FileName { get; set; } = string.Empty;
 
         /// <summary>
+        /// A link to a image of the file printing
+        /// </summary>
+        public string? FileThumbnail { get; set; } = null!;
+
+        /// <summary>
+        /// A link to a video stream of the printers camera
+        /// </summary>
+        public string? PrinterCam { get; set; }
+
+        /// <summary>
         /// Additional information about the printer
         /// </summary>
-        public Dictionary<string, string> info = new();
+        public Dictionary<string, string> info { get; set; } = new();
     }
 }

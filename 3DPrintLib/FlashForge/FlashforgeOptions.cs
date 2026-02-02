@@ -11,7 +11,9 @@ namespace _3DPrintLib.FlashForge
 
         public int Port { get; set; } = 8898;
 
-        public required string AccessCode { get; set; }
+        public required string SerialNumber { get; set; }
+
+        public required string CheckCode { get; set; }
 
         public string FullAddress { get => $"http://{PrinterIP}:{Port}"; }
 

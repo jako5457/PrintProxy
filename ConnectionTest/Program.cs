@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using _3DPrintLib;
+using _3DPrintLib.FlashForge;
 using _3DPrintLib.OctoPrint;
 using Dumpify;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,22 +20,41 @@ var options = new OctoPrintOptions()
     ApiKey = "NrtXK0RlwAw0-WqJ1_tUHzIZxTiVo-Qvz7xBzwmAJjg"
 };
 
-services.AddTransient<IPrinter, OctoPrintPrinter>(sp => new OctoPrintPrinter(sp.GetRequiredService<IHttpClientFactory>(), options));
+services.AddSingleton(sp => options);
+//services.AddTransient<IPrinter, OctoPrintPrinter>();
 
 #endregion OctoPrint
 
+#region Flashforge API
+
+FlashforgeOptions FlashOptions = new()
+{
+    PrinterIP = "127.0.0.1",
+    SerialNumber = "123456ABC",
+    CheckCode = "1234567"
+};
+
+services.AddSingleton(sp => FlashOptions);
+services.AddTransient<IPrinter, FlashforgePrinter>();
+
+#endregion
+
 var provider = services.BuildServiceProvider();
 
+
+
+// Run
 Console.WriteLine("Printer Test");
 
 var printer = provider.GetRequiredService<IPrinter>();
 
 await GetInfo(printer);
-//await UploadFile(printer);
 
-//Console.WriteLine("______ GET JOB Before Print______");
-//await GetPrinterJobDumpAsync(printer);
-//await Task.Delay(10000);
+Console.WriteLine("______ GET JOB Before Print______");
+await GetPrinterJobDumpAsync(printer);
+await Task.Delay(10000);
+
+//await UploadFile(printer);
 
 //await StartPrint(printer);
 //await PausePrint(printer);
