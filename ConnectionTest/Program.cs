@@ -12,6 +12,9 @@ var services = new ServiceCollection();
 
 services.AddHttpClient();
 
+// Global test options
+string GcodeFile = "TestFile.gcode";
+
 #region OctoPrint
 
 var options = new OctoPrintOptions()
@@ -41,8 +44,6 @@ services.AddTransient<IPrinter, FlashforgePrinter>();
 
 var provider = services.BuildServiceProvider();
 
-
-
 // Run
 Console.WriteLine("Printer Test");
 
@@ -56,11 +57,10 @@ await Task.Delay(10000);
 
 //await UploadFile(printer);
 
-//await StartPrint(printer);
-//await PausePrint(printer);
-//await ResumePrint(printer);
-//await StopPrint(printer);
-
+await StartPrint(printer);
+await PausePrint(printer);
+await ResumePrint(printer);
+await StopPrint(printer);
 
 
 async Task GetInfo(IPrinter printer)
@@ -85,7 +85,7 @@ async Task UploadFile(IPrinter Printer)
 
     var printer = provider.GetRequiredService<IPrinter>();
 
-    await printer.UploadAsync("TestFile.gcode");
+    await printer.UploadAsync(GcodeFile);
 
     Console.WriteLine("______ Upload Completed. ______");
 
@@ -96,7 +96,7 @@ async Task StartPrint(IPrinter printer)
 {
     Console.WriteLine("______ Start Print ______");
 
-    await printer.StartAsync("TestFile.gcode");
+    await printer.StartAsync(GcodeFile);
 
     await GetPrinterJobDumpAsync(printer);
 

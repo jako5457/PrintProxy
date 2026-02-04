@@ -168,7 +168,27 @@ namespace _3DPrintLib.FlashForge
 
         public async Task UploadAsync(string FilePath)
         {
-            throw new NotImplementedException();
+            try
+            {
+
+                var client = SetupClient();
+
+                FileInfo file = new FileInfo(FilePath);
+                FileStream fileStream = new FileStream(FilePath, FileMode.Open);
+
+                var formData = new MultipartFormDataContent();
+                formData.Add(new StreamContent(fileStream), "file", file.Name);
+
+                formData.Headers.Add("serialNumber", _Options.SerialNumber);
+                formData.Headers.Add("checkCode", _Options.CheckCode);
+
+                var result = await client.PostAsync("/uploadGcode", formData);
+
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, $"Upload to printer failed: {e.Message}");
+            }
         }
 
         private HttpClient SetupClient()
