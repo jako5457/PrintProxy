@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace _3DPrintLib.FlashForge.FlashDtos
 {
     internal class FlashForgePrintRequest : FlashforgeAuthRequest
     {
-        [JsonPropertyName("fileName")]
+        [JsonProperty("fileName")]
         public string FileName { get; set; } = string.Empty;
 
-        [JsonPropertyName("levelingBeforePrint")]
+        [JsonProperty("levelingBeforePrint")]
         public bool LevelingBeforePrint { get; set; } = false;
     }
 }

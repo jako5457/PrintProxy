@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace _3DPrintLib.FlashForge.FlashDtos
 {
     internal class FlashforgeControlRequest<T> : FlashforgeAuthRequest where T : new()
     {
 
-        [JsonPropertyName("payload")]
+        [JsonProperty("payload")]
         public FlashCommand<T> PayLoad { get; set; } = new FlashCommand<T>(); 
 
     }

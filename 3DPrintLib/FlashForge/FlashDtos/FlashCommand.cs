@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace _3DPrintLib.FlashForge.FlashDtos
 {
     internal class FlashCommand<T> where T : new()
     {
-        [JsonPropertyName("cmd")]
+        [JsonProperty("cmd")]
         public string Cmd { get; set; } = string.Empty;
 
-        [JsonPropertyName("args")]
+        [JsonProperty("args")]
         public T Args { get; set; } = new T();
     } 
 }

@@ -1,166 +1,166 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace _3DPrintLib.FlashForge.FlashDtos
 {
     internal class FlashforgeDetail
     {
-        [JsonPropertyName("autoShutdown")]
+        [JsonProperty("autoShutdown")]
         public string AutoShutdown { get; set; } = string.Empty;
 
-        [JsonPropertyName("autoShutdownTime")]
-        public int AutoShutdownTime { get; set; }
+        [JsonProperty("autoShutdownTime")]
+        public string AutoShutdownTime { get; set; } = string.Empty;
 
-        [JsonPropertyName("cameraStreamUrl")]
+        [JsonProperty("cameraStreamUrl")]
         public string CameraStreamUrl { get; set; } = string.Empty;
 
-        [JsonPropertyName("chamberFanSpeed")]
-        public int ChamberFanSpeed { get; set; }
+        [JsonProperty("chamberFanSpeed")]
+        public string ChamberFanSpeed { get; set; } = string.Empty;
 
-        [JsonPropertyName("chamberTargetTemp")]
-        public int ChamberTargetTemp { get; set; }
+        [JsonProperty("chamberTargetTemp")]
+        public string ChamberTargetTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("chamberTemp")]
-        public int ChamberTemp { get; set; }
+        [JsonProperty("chamberTemp")]
+        public string ChamberTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("coolingFanSpeed")]
-        public int CoolingFanSpeed { get; set; }
+        [JsonProperty("coolingFanSpeed")]
+        public string CoolingFanSpeed { get; set; } = string.Empty;
 
-        [JsonPropertyName("cumulativeFilament")]
-        public float CumulativeFilament { get; set; }
+        [JsonProperty("cumulativeFilament")]
+        public string CumulativeFilament { get; set; } = string.Empty;
 
-        [JsonPropertyName("cumulativePrintTime")]
-        public long CumulativePrintTime { get; set; }
+        [JsonProperty("cumulativePrintTime")]
+        public string CumulativePrintTime { get; set; } = string.Empty;
 
-        [JsonPropertyName("currentPrintSpeed")]
-        public int CurrentPrintSpeed { get; set; }
+        [JsonProperty("currentPrintSpeed")]
+        public string CurrentPrintSpeed { get; set; } = string.Empty;
 
-        [JsonPropertyName("doorStatus")]
+        [JsonProperty("doorStatus")]
         public string DoorStatus { get; set; } = string.Empty;
 
-        [JsonPropertyName("errorCode")]
+        [JsonProperty("errorCode")]
         public string ErrorCode { get; set; } = string.Empty;
 
-        [JsonPropertyName("estimatedLeftLen")]
-        public int EstimatedLeftLen { get; set; }
+        [JsonProperty("estimatedLeftLen")]
+        public string EstimatedLeftLen { get; set; } = string.Empty;
 
-        [JsonPropertyName("estimatedLeftWeight")]
-        public double EstimatedLeftWeight { get; set; }
+        [JsonProperty("estimatedLeftWeight")]
+        public string EstimatedLeftWeight { get; set; } = string.Empty;
 
-        [JsonPropertyName("estimatedRightLen")]
-        public int EstimatedRightLen { get; set; }
+        [JsonProperty("estimatedRightLen")]
+        public string EstimatedRightLen { get; set; } = string.Empty;
 
-        [JsonPropertyName("estimatedRightWeight")]
-        public double EstimatedRightWeight { get; set; }
+        [JsonProperty("estimatedRightWeight")]
+        public string EstimatedRightWeight { get; set; } = string.Empty;
 
-        [JsonPropertyName("estimatedTime")]
-        public double EstimatedTime { get; set; }
+        [JsonProperty("estimatedTime")]
+        public string EstimatedTime { get; set; } = string.Empty;
 
-        [JsonPropertyName("externalFanStatus")]
+        [JsonProperty("externalFanStatus")]
         public string ExternalFanStatus { get; set; } = string.Empty;
 
-        [JsonPropertyName("fillAmount")]
-        public int FillAmount { get; set; }
+        [JsonProperty("fillAmount")]
+        public string FillAmount { get; set; } = string.Empty;
 
-        [JsonPropertyName("firmwareVersion")]
+        [JsonProperty("firmwareVersion")]
         public string FirmwareVersion { get; set; } = string.Empty;
 
-        [JsonPropertyName("flashRegisterCode")]
+        [JsonProperty("flashRegisterCode")]
         public string FlashRegisterCode { get; set; } = string.Empty;
 
-        [JsonPropertyName("internalFanStatus")]
+        [JsonProperty("internalFanStatus")]
         public string InternalFanStatus { get; set; } = string.Empty;
 
-        [JsonPropertyName("ipAddr")]
+        [JsonProperty("ipAddr")]
         public string IpAddr { get; set; } = string.Empty;
 
-        [JsonPropertyName("leftFilamentType")]
+        [JsonProperty("leftFilamentType")]
         public string LeftFilamentType { get; set; } = string.Empty;
 
-        [JsonPropertyName("leftTargetTemp")]
-        public int LeftTargetTemp { get; set; }
+        [JsonProperty("leftTargetTemp")]
+        public string LeftTargetTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("leftTemp")]
-        public int LeftTemp { get; set; }
+        [JsonProperty("leftTemp")]
+        public string LeftTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("lightStatus")]
+        [JsonProperty("lightStatus")]
         public string LightStatus { get; set; } = string.Empty;
 
-        [JsonPropertyName("location")]
+        [JsonProperty("location")]
         public string Location { get; set; } = string.Empty;
 
-        [JsonPropertyName("macAddr")]
+        [JsonProperty("macAddr")]
         public string MacAddr { get; set; } = string.Empty;
 
-        [JsonPropertyName("measure")]
+        [JsonProperty("measure")]
         public string Measure { get; set; } = string.Empty;
 
-        [JsonPropertyName("name")]
+        [JsonProperty("name")]
         public string Name { get; set; } = string.Empty;
 
-        [JsonPropertyName("nozzleCnt")]
-        public int NozzleCnt { get; set; }
+        [JsonProperty("nozzleCnt")]
+        public string NozzleCnt { get; set; } = string.Empty;
 
-        [JsonPropertyName("nozzleModel")]
+        [JsonProperty("nozzleModel")]
         public string NozzleModel { get; set; } = string.Empty;
 
-        [JsonPropertyName("nozzleStyle")]
-        public int NozzleStyle { get; set; }
+        [JsonProperty("nozzleStyle")]
+        public string NozzleStyle { get; set; } = string.Empty;
 
-        [JsonPropertyName("pid")]
-        public int Pid { get; set; }
+        [JsonProperty("pid")]
+        public string Pid { get; set; } = string.Empty;
 
-        [JsonPropertyName("platTargetTemp")]
-        public float PlatTargetTemp { get; set; }
+        [JsonProperty("platTargetTemp")]
+        public string PlatTargetTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("platTemp")]
-        public float PlatTemp { get; set; }
+        [JsonProperty("platTemp")]
+        public string PlatTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("polarRegisterCode")]
+        [JsonProperty("polarRegisterCode")]
         public string PolarRegisterCode { get; set; } = string.Empty;
 
-        [JsonPropertyName("printDuration")]
-        public int PrintDuration { get; set; }
+        [JsonProperty("printDuration")]
+        public string PrintDuration { get; set; } = string.Empty;
 
-        [JsonPropertyName("printFileName")]
+        [JsonProperty("printFileName")]
         public string PrintFileName { get; set; } = string.Empty;
 
-        [JsonPropertyName("printFileThumbUrl")]
+        [JsonProperty("printFileThumbUrl")]
         public string PrintFileThumbUrl { get; set; } = string.Empty;
 
-        [JsonPropertyName("printLayer")]
-        public int PrintLayer { get; set; }
+        [JsonProperty("printLayer")]
+        public string PrintLayer { get; set; } = string.Empty;
 
-        [JsonPropertyName("printProgress")]
-        public double PrintProgress { get; set; }
+        [JsonProperty("printProgress")]
+        public int PrintProgress { get; set; }
 
-        [JsonPropertyName("printSpeedAdjust")]
-        public double PrintSpeedAdjust { get; set; }
+        [JsonProperty("printSpeedAdjust")]
+        public string PrintSpeedAdjust { get; set; } = string.Empty;
 
-        [JsonPropertyName("remainingDiskSpace")]
-        public float RemainingDiskSpace { get; set; }
+        [JsonProperty("remainingDiskSpace")]
+        public string RemainingDiskSpace { get; set; } = string.Empty;
 
-        [JsonPropertyName("rightFilamentType")]
+        [JsonProperty("rightFilamentType")]
         public string RightFilamentType { get; set; } = string.Empty;
 
-        [JsonPropertyName("rightTargetTemp")]
-        public double RightTargetTemp { get; set; }
+        [JsonProperty("rightTargetTemp")]
+        public string RightTargetTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("rightTemp")]
-        public float RightTemp { get; set; }
+        [JsonProperty("rightTemp")]
+        public string RightTemp { get; set; } = string.Empty;
 
-        [JsonPropertyName("status")]
+        [JsonProperty("status")]
         public string Status { get; set; } = string.Empty;
 
-        [JsonPropertyName("targetPrintLayer")]
-        public int TargetPrintLayer { get; set; }
+        [JsonProperty("targetPrintLayer")]
+        public string TargetPrintLayer { get; set; } = string.Empty;
 
-        [JsonPropertyName("tvoc")]
-        public int Tvoc { get; set; }
+        [JsonProperty("tvoc")]
+        public string Tvoc { get; set; } = string.Empty;
 
-        [JsonPropertyName("zAxisCompensation")]
-        public float ZAxisCompensation { get; set; }
+        [JsonProperty("zAxisCompensation")]
+        public string ZAxisCompensation { get; set; } = string.Empty;
     }
 }

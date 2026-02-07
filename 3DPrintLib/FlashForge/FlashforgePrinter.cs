@@ -2,6 +2,7 @@
 using _3DPrintLib.FlashForge.FlashDtos.Commands;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using PrintLib;
 using System;
 using System.Collections.Generic;
@@ -62,7 +63,9 @@ namespace _3DPrintLib.FlashForge
 
                 result.EnsureSuccessStatusCode();
 
-                var Response = await result.Content.ReadFromJsonAsync<FlashforgeDetailResponse>();
+                var json = await result.Content.ReadAsStringAsync();
+
+                var Response = JsonConvert.DeserializeObject<FlashforgeDetailResponse>(json);
 
                 return new JobStatus()
                 {
@@ -93,7 +96,7 @@ namespace _3DPrintLib.FlashForge
 
                 _Logger.LogDebug(json);
 
-                var Response = JsonSerializer.Deserialize<FlashforgeDetailResponse>(json);
+                var Response = JsonConvert.DeserializeObject<FlashforgeDetailResponse>(json);
 
                 return new PrinterStatus()
                 {
@@ -102,8 +105,15 @@ namespace _3DPrintLib.FlashForge
                     FileThumbnail = Response?.detail?.PrintFileThumbUrl ?? null,
                     PrinterCam = Response?.detail?.CameraStreamUrl ?? null,
                     Status = Response?.detail?.Status ?? "N/A",
-                    Progress = Convert.ToInt32(Response?.detail?.PrintProgress ?? 0)
+                    Progress = Convert.ToInt32(Response?.detail?.PrintProgress ?? 0),
+                    info = new()
+                    {
+                        {"Estimated time",Response?.detail?.EstimatedTime ?? "N/A" },
+                        {"Current print speed",Response?.detail?.CurrentPrintSpeed ?? "N/A"}
+                    }
                 };
+
+                
             }
             catch (Exception e)
             {

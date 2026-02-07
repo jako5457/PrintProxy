@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace _3DPrintLib.FlashForge.FlashDtos.Commands
 {
     public class FlashJobControlArgs
     {
 
-        [JsonPropertyName("action")]
+        [JsonProperty("action")]
         public string Action { get; set; } = string.Empty;
 
     }

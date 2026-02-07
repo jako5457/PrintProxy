@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace _3DPrintLib.FlashForge.FlashDtos
 {
     public class FlashforgeAuthRequest
     {
-        [JsonPropertyName("serialNumber")]
-        [JsonPropertyOrder(1)]
+        [JsonProperty("serialNumber")]
         public string SerialNumber { get; set; } = string.Empty;
 
-        [JsonPropertyName("checkCode")]
-        [JsonPropertyOrder(2)]
+        [JsonProperty("checkCode")]
         public string CheckCode { get; set; } = string.Empty;
     }
 }
