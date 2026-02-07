@@ -9,6 +9,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace _3DPrintLib.FlashForge
 {
@@ -39,6 +40,9 @@ namespace _3DPrintLib.FlashForge
                 var result = await client.PostAsJsonAsync("/printGcode", request);
 
                 result.EnsureSuccessStatusCode();
+
+                string json = await result.Content.ReadAsStringAsync();
+                _Logger.LogDebug(json);
             }
             catch (Exception e)
             {
@@ -63,7 +67,7 @@ namespace _3DPrintLib.FlashForge
                 return new JobStatus()
                 {
                     Status = Response?.detail?.Status ?? "N/A",
-                    Progress = Response?.detail?.PrintProgress ?? 0
+                    Progress = Convert.ToInt32(Response?.detail?.PrintProgress ?? 0)
                 };
             }
             catch (Exception e)
@@ -85,7 +89,11 @@ namespace _3DPrintLib.FlashForge
 
                 result.EnsureSuccessStatusCode();
 
-                var Response = await result.Content.ReadFromJsonAsync<FlashforgeDetailResponse>();
+                var json = await result.Content.ReadAsStringAsync();
+
+                _Logger.LogDebug(json);
+
+                var Response = JsonSerializer.Deserialize<FlashforgeDetailResponse>(json);
 
                 return new PrinterStatus()
                 {
@@ -94,7 +102,7 @@ namespace _3DPrintLib.FlashForge
                     FileThumbnail = Response?.detail?.PrintFileThumbUrl ?? null,
                     PrinterCam = Response?.detail?.CameraStreamUrl ?? null,
                     Status = Response?.detail?.Status ?? "N/A",
-                    Progress = Response?.detail?.PrintProgress ?? 0
+                    Progress = Convert.ToInt32(Response?.detail?.PrintProgress ?? 0)
                 };
             }
             catch (Exception e)
@@ -176,13 +184,25 @@ namespace _3DPrintLib.FlashForge
                 FileInfo file = new FileInfo(FilePath);
                 FileStream fileStream = new FileStream(FilePath, FileMode.Open);
 
-                var formData = new MultipartFormDataContent();
-                formData.Add(new StreamContent(fileStream), "file", file.Name);
+                _Logger.LogDebug("File: " + file.Name);
 
+                var formData = new MultipartFormDataContent();
+                //formData.Add(new ByteArrayContent(File.ReadAllBytes(FilePath)));
+                formData.Add(new StreamContent(fileStream),"File", file.Name);
                 formData.Headers.Add("serialNumber", _Options.SerialNumber);
                 formData.Headers.Add("checkCode", _Options.CheckCode);
+                formData.Headers.Add("fileSize", fileStream.Length.ToString());
+                formData.Headers.Add("printNow", "false");
+                formData.Headers.Add("levelingBeforePrint", "false");
 
                 var result = await client.PostAsync("/uploadGcode", formData);
+
+                result.EnsureSuccessStatusCode();
+
+                var json = await result.Content.ReadAsStringAsync();
+
+                _Logger.LogDebug(json);
+
 
             }
             catch (Exception e)

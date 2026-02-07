@@ -4,6 +4,7 @@ using _3DPrintLib.FlashForge;
 using _3DPrintLib.OctoPrint;
 using Dumpify;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using PrintLib;
 using System.Reflection;
 
@@ -13,14 +14,14 @@ var services = new ServiceCollection();
 services.AddHttpClient();
 
 // Global test options
-string GcodeFile = "TestFile.gcode";
+string GcodeFile = "3DBenchy.gcode";
 
 #region OctoPrint
 
 var options = new OctoPrintOptions()
 {
     EndPoint = new Uri("http://localhost:8080"),
-    ApiKey = "NrtXK0RlwAw0-WqJ1_tUHzIZxTiVo-Qvz7xBzwmAJjg"
+    ApiKey = "--"
 };
 
 services.AddSingleton(sp => options);
@@ -32,35 +33,41 @@ services.AddSingleton(sp => options);
 
 FlashforgeOptions FlashOptions = new()
 {
-    PrinterIP = "127.0.0.1",
-    SerialNumber = "123456ABC",
-    CheckCode = "1234567"
+    PrinterIP = "--",
+    SerialNumber = "--",
+    CheckCode = "--"
 };
 
 services.AddSingleton(sp => FlashOptions);
 services.AddTransient<IPrinter, FlashforgePrinter>();
-
+services.AddLogging(options => options.AddConsole().SetMinimumLevel(LogLevel.Trace));
 #endregion
 
 var provider = services.BuildServiceProvider();
 
 // Run
-Console.WriteLine("Printer Test");
+Console.WriteLine("_____ Printer Test _____");
 
 var printer = provider.GetRequiredService<IPrinter>();
 
 await GetInfo(printer);
 
-Console.WriteLine("______ GET JOB Before Print______");
-await GetPrinterJobDumpAsync(printer);
 await Task.Delay(10000);
 
-//await UploadFile(printer);
+Console.WriteLine("______ GET JOB Before Print______");
+await GetPrinterJobDumpAsync(printer);
 
+//await Task.Delay(10000);
+//await UploadFile(printer);
+//await Task.Delay(20000);
 await StartPrint(printer);
+await Task.Delay(20000);
 await PausePrint(printer);
+await Task.Delay(20000);
 await ResumePrint(printer);
+await Task.Delay(20000);
 await StopPrint(printer);
+Console.ReadLine();
 
 
 async Task GetInfo(IPrinter printer)
@@ -75,8 +82,6 @@ async Task GetInfo(IPrinter printer)
     {
         Console.WriteLine($"- {item.Key}: {item.Value}");
     }
-
-    await Task.Delay(10000);
 }
 
 async Task UploadFile(IPrinter Printer)
@@ -88,8 +93,6 @@ async Task UploadFile(IPrinter Printer)
     await printer.UploadAsync(GcodeFile);
 
     Console.WriteLine("______ Upload Completed. ______");
-
-    await Task.Delay(10000);
 }
 
 async Task StartPrint(IPrinter printer)
@@ -99,8 +102,6 @@ async Task StartPrint(IPrinter printer)
     await printer.StartAsync(GcodeFile);
 
     await GetPrinterJobDumpAsync(printer);
-
-    await Task.Delay(20000);
 }
 
 async Task PausePrint(IPrinter printer)
@@ -110,8 +111,6 @@ async Task PausePrint(IPrinter printer)
     await printer.PauseAsync();
 
     await GetPrinterJobDumpAsync(printer);
-
-    await Task.Delay(20000);
 }
 
 async Task ResumePrint(IPrinter printer)
@@ -121,8 +120,6 @@ async Task ResumePrint(IPrinter printer)
     await printer.ContinueAsync();
 
     await GetPrinterJobDumpAsync(printer);
-
-    await Task.Delay(20000);
 }
 
 async Task StopPrint(IPrinter printer)

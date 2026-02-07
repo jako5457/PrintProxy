@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace _3DPrintLib.FlashForge.FlashDtos
 {
-    internal class FlashforgeControlRequest<T> : FlashforgeAuthRequest
+    internal class FlashforgeControlRequest<T> : FlashforgeAuthRequest where T : new()
     {
 
         [JsonPropertyName("payload")]

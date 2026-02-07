@@ -32,7 +32,7 @@ namespace _3DPrintLib.FlashForge.FlashDtos
         public float CumulativeFilament { get; set; }
 
         [JsonPropertyName("cumulativePrintTime")]
-        public int CumulativePrintTime { get; set; }
+        public long CumulativePrintTime { get; set; }
 
         [JsonPropertyName("currentPrintSpeed")]
         public int CurrentPrintSpeed { get; set; }
@@ -47,16 +47,16 @@ namespace _3DPrintLib.FlashForge.FlashDtos
         public int EstimatedLeftLen { get; set; }
 
         [JsonPropertyName("estimatedLeftWeight")]
-        public int EstimatedLeftWeight { get; set; }
+        public double EstimatedLeftWeight { get; set; }
 
         [JsonPropertyName("estimatedRightLen")]
         public int EstimatedRightLen { get; set; }
 
         [JsonPropertyName("estimatedRightWeight")]
-        public int EstimatedRightWeight { get; set; }
+        public double EstimatedRightWeight { get; set; }
 
         [JsonPropertyName("estimatedTime")]
-        public int EstimatedTime { get; set; }
+        public double EstimatedTime { get; set; }
 
         [JsonPropertyName("externalFanStatus")]
         public string ExternalFanStatus { get; set; } = string.Empty;
@@ -113,7 +113,7 @@ namespace _3DPrintLib.FlashForge.FlashDtos
         public int Pid { get; set; }
 
         [JsonPropertyName("platTargetTemp")]
-        public int PlatTargetTemp { get; set; }
+        public float PlatTargetTemp { get; set; }
 
         [JsonPropertyName("platTemp")]
         public float PlatTemp { get; set; }
@@ -134,10 +134,10 @@ namespace _3DPrintLib.FlashForge.FlashDtos
         public int PrintLayer { get; set; }
 
         [JsonPropertyName("printProgress")]
-        public int PrintProgress { get; set; }
+        public double PrintProgress { get; set; }
 
         [JsonPropertyName("printSpeedAdjust")]
-        public int PrintSpeedAdjust { get; set; }
+        public double PrintSpeedAdjust { get; set; }
 
         [JsonPropertyName("remainingDiskSpace")]
         public float RemainingDiskSpace { get; set; }
@@ -146,7 +146,7 @@ namespace _3DPrintLib.FlashForge.FlashDtos
         public string RightFilamentType { get; set; } = string.Empty;
 
         [JsonPropertyName("rightTargetTemp")]
-        public int RightTargetTemp { get; set; }
+        public double RightTargetTemp { get; set; }
 
         [JsonPropertyName("rightTemp")]
         public float RightTemp { get; set; }

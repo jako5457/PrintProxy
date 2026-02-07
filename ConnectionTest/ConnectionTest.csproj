@@ -9,7 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="Dumpify" Version="0.6.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.2" />
   </ItemGroup>
 
   <ItemGroup>
