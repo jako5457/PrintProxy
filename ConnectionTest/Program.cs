@@ -40,7 +40,7 @@ FlashforgeOptions FlashOptions = new()
 
 services.AddSingleton(sp => FlashOptions);
 services.AddTransient<IPrinter, FlashforgePrinter>();
-services.AddLogging(options => options.AddConsole().SetMinimumLevel(LogLevel.Trace));
+services.AddLogging(options => options.AddConsole().SetMinimumLevel(LogLevel.Warning));
 #endregion
 
 var provider = services.BuildServiceProvider();
@@ -57,16 +57,17 @@ await Task.Delay(10000);
 Console.WriteLine("______ GET JOB Before Print______");
 await GetPrinterJobDumpAsync(printer);
 
-//await Task.Delay(10000);
+await Task.Delay(10000);
 //await UploadFile(printer);
 //await Task.Delay(20000);
 await StartPrint(printer);
-await Task.Delay(20000);
+await PollWait(printer,300,"Start of print...");
 await PausePrint(printer);
-await Task.Delay(20000);
+await PollWait(printer,100,"Pause print...");
 await ResumePrint(printer);
-await Task.Delay(20000);
+await PollWait(printer,200,"Resume print...");
 await StopPrint(printer);
+await PollWait(printer, 100,"Stop print...");
 Console.ReadLine();
 
 
@@ -97,38 +98,22 @@ async Task UploadFile(IPrinter Printer)
 
 async Task StartPrint(IPrinter printer)
 {
-    Console.WriteLine("______ Start Print ______");
-
     await printer.StartAsync(GcodeFile);
-
-    await GetPrinterJobDumpAsync(printer);
 }
 
 async Task PausePrint(IPrinter printer)
 {
-    Console.WriteLine("______ Pause Print ______");
-
     await printer.PauseAsync();
-
-    await GetPrinterJobDumpAsync(printer);
 }
 
 async Task ResumePrint(IPrinter printer)
 {
-    Console.WriteLine("______ Continue Print ______");
-
     await printer.ContinueAsync();
-
-    await GetPrinterJobDumpAsync(printer);
 }
 
 async Task StopPrint(IPrinter printer)
 {
-    Console.WriteLine("______ Stop Print ______");
-
     await printer.StopAsync();
-
-    await GetPrinterJobDumpAsync(printer);
 }
 
 async Task GetPrinterJobDumpAsync(IPrinter printer)
@@ -136,4 +121,16 @@ async Task GetPrinterJobDumpAsync(IPrinter printer)
     var job = await printer.GetJobStatusAsync();
 
     job.Dump();
+}
+
+async Task PollWait(IPrinter printer,int delayrounds,string message)
+{
+    for (int i = 0; i < delayrounds; i++)
+    {
+        await Task.Delay(1000);
+        Console.Clear();
+        Console.WriteLine(message);
+        Console.WriteLine($"Waiting: {delayrounds - i}s. Left");
+        await GetPrinterJobDumpAsync(printer);
+    }
 }

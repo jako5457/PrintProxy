@@ -134,7 +134,7 @@ namespace _3DPrintLib.FlashForge.FlashDtos
         public string PrintLayer { get; set; } = string.Empty;
 
         [JsonProperty("printProgress")]
-        public int PrintProgress { get; set; }
+        public double PrintProgress { get; set; }
 
         [JsonProperty("printSpeedAdjust")]
         public string PrintSpeedAdjust { get; set; } = string.Empty;

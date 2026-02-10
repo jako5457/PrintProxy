@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -38,12 +39,16 @@ namespace _3DPrintLib.FlashForge
                 request.PayLoad.Cmd = "jobCtl_cmd";
                 request.PayLoad.Args.Action = FlashJobAction.Continue;
 
-                var result = await client.PostAsJsonAsync("/printGcode", request);
+                string json = JsonConvert.SerializeObject(request);
+
+                var msg = new HttpRequestMessage(HttpMethod.Post, "/control");
+
+                msg.Content = new StringContent(json);
+                msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                var result = await client.SendAsync(msg);
 
                 result.EnsureSuccessStatusCode();
-
-                string json = await result.Content.ReadAsStringAsync();
-                _Logger.LogDebug(json);
             }
             catch (Exception e)
             {
@@ -133,9 +138,18 @@ namespace _3DPrintLib.FlashForge
                 request.PayLoad.Cmd = "jobCtl_cmd";
                 request.PayLoad.Args.Action = FlashJobAction.Pause;
 
-                var result = await client.PostAsJsonAsync("/printGcode", request);
+                string json = JsonConvert.SerializeObject(request);
+
+                var msg = new HttpRequestMessage(HttpMethod.Post, "/control");
+
+                msg.Content = new StringContent(json);
+                msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                var result = await client.SendAsync(msg);
 
                 result.EnsureSuccessStatusCode();
+
+                _Logger.LogDebug(json);
             }
             catch (Exception e)
             {
@@ -156,6 +170,9 @@ namespace _3DPrintLib.FlashForge
                 var result = await client.PostAsJsonAsync("/printGcode", request);
 
                 result.EnsureSuccessStatusCode();
+
+                string json = await result.Content.ReadAsStringAsync();
+                _Logger.LogDebug(json);
             }
             catch (Exception e)
             {
@@ -174,7 +191,14 @@ namespace _3DPrintLib.FlashForge
                 request.PayLoad.Cmd = "jobCtl_cmd";
                 request.PayLoad.Args.Action = FlashJobAction.Cancel;
 
-                var result = await client.PostAsJsonAsync("/printGcode", request);
+                string json = JsonConvert.SerializeObject(request);
+
+                var msg = new HttpRequestMessage(HttpMethod.Post, "/control");
+
+                msg.Content = new StringContent(json);
+                msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                var result = await client.SendAsync(msg);
 
                 result.EnsureSuccessStatusCode();
             }
@@ -188,7 +212,6 @@ namespace _3DPrintLib.FlashForge
         {
             try
             {
-
                 var client = SetupClient();
 
                 FileInfo file = new FileInfo(FilePath);
@@ -196,9 +219,9 @@ namespace _3DPrintLib.FlashForge
 
                 _Logger.LogDebug("File: " + file.Name);
 
-                var formData = new MultipartFormDataContent();
+                var formData = new ByteArrayContent(File.ReadAllBytes(FilePath),0,Convert.ToInt32(file.Length));
                 //formData.Add(new ByteArrayContent(File.ReadAllBytes(FilePath)));
-                formData.Add(new StreamContent(fileStream),"File", file.Name);
+                //formData.Add(new StreamContent(fileStream),"File", file.Name);
                 formData.Headers.Add("serialNumber", _Options.SerialNumber);
                 formData.Headers.Add("checkCode", _Options.CheckCode);
                 formData.Headers.Add("fileSize", fileStream.Length.ToString());
