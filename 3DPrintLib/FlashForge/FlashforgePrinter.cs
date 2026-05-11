@@ -219,9 +219,11 @@ namespace _3DPrintLib.FlashForge
 
                 _Logger.LogDebug("File: " + file.Name);
 
-                var formData = new ByteArrayContent(File.ReadAllBytes(FilePath),0,Convert.ToInt32(file.Length));
-                //formData.Add(new ByteArrayContent(File.ReadAllBytes(FilePath)));
-                //formData.Add(new StreamContent(fileStream),"File", file.Name);
+                var formData = new MultipartFormDataContent();
+                formData.Add(new StringContent("gcodefile"), "name");
+                formData.Add(new StringContent(file.Name), "filename");
+                formData.Add(new StreamContent(fileStream), "Data");
+
                 formData.Headers.Add("serialNumber", _Options.SerialNumber);
                 formData.Headers.Add("checkCode", _Options.CheckCode);
                 formData.Headers.Add("fileSize", fileStream.Length.ToString());

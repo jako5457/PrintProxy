@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PrintProxy.Controller": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
