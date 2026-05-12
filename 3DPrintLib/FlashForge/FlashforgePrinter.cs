@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Mime;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -215,20 +216,23 @@ namespace _3DPrintLib.FlashForge
                 var client = SetupClient();
 
                 FileInfo file = new FileInfo(FilePath);
-                FileStream fileStream = new FileStream(FilePath, FileMode.Open);
 
-                _Logger.LogDebug("File: " + file.Name);
+                _Logger.LogInformation("Sending File: " + file.Name);
 
                 var formData = new MultipartFormDataContent();
-                formData.Add(new StringContent("gcodefile"), "name");
-                formData.Add(new StringContent(file.Name), "filename");
-                formData.Add(new StreamContent(fileStream), "Data");
+                formData.Add(new StringContent(_Options.SerialNumber), "serialNumber");
+                formData.Add(new StringContent(_Options.CheckCode), "checkCode");
+                formData.Add(new StringContent("false"), "levelingBeforePrint");
 
-                formData.Headers.Add("serialNumber", _Options.SerialNumber);
-                formData.Headers.Add("checkCode", _Options.CheckCode);
-                formData.Headers.Add("fileSize", fileStream.Length.ToString());
-                formData.Headers.Add("printNow", "false");
-                formData.Headers.Add("levelingBeforePrint", "false");
+                var fileContent = new ByteArrayContent(File.ReadAllBytes(FilePath));
+
+                fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "gcodeFile",
+                    FileName = file.Name
+                };
+
+                formData.Add(fileContent);
 
                 var result = await client.PostAsync("/uploadGcode", formData);
 
@@ -236,8 +240,7 @@ namespace _3DPrintLib.FlashForge
 
                 var json = await result.Content.ReadAsStringAsync();
 
-                _Logger.LogDebug(json);
-
+                _Logger.LogInformation("Printer Upload Response" + json);
 
             }
             catch (Exception e)
