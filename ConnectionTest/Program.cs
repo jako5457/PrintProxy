@@ -33,9 +33,9 @@ services.AddSingleton(sp => options);
 
 FlashforgeOptions FlashOptions = new()
 {
-    PrinterIP = "10.131.7.52",
-    SerialNumber = "SNMQQE9408105",
-    CheckCode = "0e35a229"
+    PrinterIP = "---",
+    SerialNumber = "---",
+    CheckCode = "---"
 };
 
 services.AddSingleton(sp => FlashOptions);
@@ -57,7 +57,7 @@ await Task.Delay(10000);
 //Console.WriteLine("______ GET JOB Before Print______");
 //await GetPrinterJobDumpAsync(printer);
 
-await Task.Delay(10000);
+//await Task.Delay(10000);
 await UploadFile(printer);
 //await Task.Delay(20000);
 //await StartPrint(printer);

@@ -225,9 +225,14 @@ namespace _3DPrintLib.FlashForge
                 _Logger.LogInformation("Sending File: " + file.Name);
 
                 var formData = new MultipartFormDataContent();
-                formData.Add(new StringContent(_Options.SerialNumber), "serialNumber");
-                formData.Add(new StringContent(_Options.CheckCode), "checkCode");
-                formData.Add(new StringContent("false"), "levelingBeforePrint");
+                //formData.Add(new StringContent(_Options.SerialNumber), "serialNumber");
+                //formData.Add(new StringContent(_Options.CheckCode), "checkCode");
+                //formData.Add(new StringContent("false"), "levelingBeforePrint");
+
+                formData.Headers.Add("serialNumber", _Options.SerialNumber);
+                formData.Headers.Add("checkCode", _Options.CheckCode);
+                formData.Headers.Add("levelingBeforePrint", "false");
+                formData.Headers.Add("fileSize", file.Length.ToString());
 
                 var fileContent = new ByteArrayContent(File.ReadAllBytes(FilePath));
 
@@ -244,6 +249,13 @@ namespace _3DPrintLib.FlashForge
                 result.EnsureSuccessStatusCode();
 
                 var json = await result.Content.ReadAsStringAsync();
+
+                var Response = JsonConvert.DeserializeObject<FlashforgeStatusResponse>(json);
+
+                if (Response?.Code < 0)
+                {
+                    throw new PrinterResponseExeption(Response.message);
+                }
 
                 _Logger.LogInformation("Printer Upload Response" + json);
 
