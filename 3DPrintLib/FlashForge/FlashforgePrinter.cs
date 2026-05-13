@@ -103,6 +103,11 @@ namespace _3DPrintLib.FlashForge
 
                 var Response = JsonConvert.DeserializeObject<FlashforgeDetailResponse>(json);
 
+                if (Response?.Code < 0)
+                {
+                    throw new PrinterResponseExeption(Response.message);
+                }
+
                 return new PrinterStatus()
                 {
                     PrinterName = Response?.detail?.Name ?? "Flashforge Printer",

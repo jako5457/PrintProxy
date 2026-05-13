@@ -11,6 +11,9 @@ namespace _3DPrintLib.FlashForge.FlashDtos
         [JsonProperty("code")]
         public int Code { get; set; }
 
+        [JsonProperty("Message")]
+        public string message { get; set; } = string.Empty;
+
         public FlashforgeDetail detail { get; set; } = default!;
 
     }
