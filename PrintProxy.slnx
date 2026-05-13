@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="readme.md" />
+  </Folder>
   <Project Path="3DPrintLib/PrintLib.csproj" />
   <Project Path="ConnectionTest/ConnectionTest.csproj" Id="a6ad2307-4cc4-44cd-bc19-adc501a5f1d2" />
   <Project Path="PrintProxy.Controller/PrintProxy.Controller.csproj" Id="794b7bd9-11f1-48b7-aa1f-a2e92af71f36" />
