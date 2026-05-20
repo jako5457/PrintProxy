@@ -3,31 +3,58 @@
 @inject ILogger<Home> _logger;
 <PageTitle>Home</PageTitle>
 
-@foreach (var status in statuses)
+@if (isbusy)
 {
-    <MudCard>
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h6">@status.PrinterName</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudAlert Severity="Severity.Info">@status.Status</MudAlert>
-            <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
-                <MudText Typo="Typo.subtitle1" Color="Color.Dark">
-                    <b>@(status.Progress)%</b>
-                </MudText>
-            </MudProgressLinear>
-        </MudCardContent>
-    </MudCard>
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
 }
+else
+{
+    <MudButton Variant="Variant.Filled" OnClick="ReloadAsync" Disabled="isbusy" Color="Color.Primary" Style="margin-top:2px;">Refresh</MudButton>
+    <MudGrid Style="margin-top:2px;">
+        @foreach (var status in statuses)
+        {
+            <MudItem sm="12" md="3">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@status.PrinterName</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudAlert Severity="Severity.Info">@status.Status</MudAlert>
+                        <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
+                            <MudText Typo="Typo.subtitle1" Color="Color.Dark">
+                                <b>@(status.Progress)%</b>
+                            </MudText>
+                        </MudProgressLinear>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+
+
+
 
 @code {
 
     List<PrinterStatus> statuses = new List<PrinterStatus>();
 
+    bool isbusy = true;
+
     protected override async Task OnInitializedAsync()
     {
+        await ReloadAsync();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task ReloadAsync()
+    {
+        statuses.Clear();
+        isbusy = true;
+        await InvokeAsync(StateHasChanged);
         foreach (var printer in PrinterFactory.GetPrinters())
         {
             try
@@ -38,8 +65,9 @@
             {
                 _logger.LogError(e, e.Message);
             }
-        }   
-        await base.OnInitializedAsync();
+        }
+        isbusy = false;
+        await InvokeAsync(StateHasChanged);
     }
 
 }
