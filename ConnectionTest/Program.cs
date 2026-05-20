@@ -1,7 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using _3DPrintLib;
-using _3DPrintLib.FlashForge;
-using _3DPrintLib.OctoPrint;
+using PrintLib;
+using PrintLib.FlashForge;
+using PrintLib.OctoPrint;
 using Dumpify;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,7 +21,7 @@ string GcodeFile = "3DBenchy.gcode";
 var options = new OctoPrintOptions()
 {
     EndPoint = new Uri("http://localhost:8080"),
-    ApiKey = "--"
+    ApiKey = "47f8e50761a349af9a5c3491b3210594"
 };
 
 services.AddSingleton(sp => options);

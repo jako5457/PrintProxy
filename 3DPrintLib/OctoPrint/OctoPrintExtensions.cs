@@ -1,4 +1,5 @@
-﻿using _3DPrintLib.OctoPrint.OctoDtos;
+﻿using 
+    PrintLib.OctoPrint.OctoDtos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -7,7 +8,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 
-namespace _3DPrintLib.OctoPrint
+namespace PrintLib.OctoPrint
 {
     public static class OctoPrintExtensions
     {

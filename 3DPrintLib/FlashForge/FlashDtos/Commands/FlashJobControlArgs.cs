@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace _3DPrintLib.FlashForge.FlashDtos.Commands
+namespace PrintLib.FlashForge.FlashDtos.Commands
 {
     public class FlashJobControlArgs
     {

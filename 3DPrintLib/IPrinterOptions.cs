@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace _3DPrintLib
+namespace PrintLib
 {
     public interface IPrinterOptions<T> where T : class
     {

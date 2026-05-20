@@ -1,9 +1,9 @@
-﻿using _3DPrintLib.FlashForge.FlashDtos;
+﻿using PrintLib.FlashForge.FlashDtos;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace _3DPrintLib.FlashForge
+namespace PrintLib.FlashForge
 {
     internal static class FlashforgeExtensions
     {

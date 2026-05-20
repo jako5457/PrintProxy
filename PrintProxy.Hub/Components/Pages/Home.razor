@@ -1,0 +1,45 @@
+﻿@page "/"
+@inject IPrinterFactory PrinterFactory
+@inject ILogger<Home> _logger;
+<PageTitle>Home</PageTitle>
+
+@foreach (var status in statuses)
+{
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@status.PrinterName</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudAlert Severity="Severity.Info">@status.Status</MudAlert>
+            <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
+                <MudText Typo="Typo.subtitle1" Color="Color.Dark">
+                    <b>@(status.Progress)%</b>
+                </MudText>
+            </MudProgressLinear>
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+
+    List<PrinterStatus> statuses = new List<PrinterStatus>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var printer in PrinterFactory.GetPrinters())
+        {
+            try
+            {
+                statuses.Add(await printer.GetStatusAsync());
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
+            }
+        }   
+        await base.OnInitializedAsync();
+    }
+
+}

@@ -1,5 +1,5 @@
-﻿using _3DPrintLib.FlashForge.FlashDtos;
-using _3DPrintLib.FlashForge.FlashDtos.Commands;
+﻿using PrintLib.FlashForge.FlashDtos;
+using PrintLib.FlashForge.FlashDtos.Commands;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -14,7 +14,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace _3DPrintLib.FlashForge
+namespace PrintLib.FlashForge
 {
     public class FlashforgePrinter : IPrinter
     {

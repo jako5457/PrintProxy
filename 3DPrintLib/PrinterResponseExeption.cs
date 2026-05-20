@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace _3DPrintLib
+namespace PrintLib
 {
     internal class PrinterResponseExeption : Exception
     {
