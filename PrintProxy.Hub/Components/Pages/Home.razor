@@ -1,6 +1,8 @@
 ﻿@page "/"
 @inject IPrinterFactory PrinterFactory
+@inject IPrinterIndexService index
 @inject ILogger<Home> _logger;
+@inject NavigationManager nav;
 <PageTitle>Home</PageTitle>
 
 @if (isbusy)
@@ -28,6 +30,9 @@ else
                             </MudText>
                         </MudProgressLinear>
                     </MudCardContent>
+                    <MudCardActions>
+                        <MudButton OnClick='() => nav.NavigateTo("/printer/status/" + WebUtility.UrlEncode(status.Identifier))'>Details</MudButton>
+                    </MudCardActions>
                 </MudCard>
             </MudItem>
         }
@@ -41,7 +46,7 @@ else
 @code {
 
     List<PrinterStatus> statuses = new List<PrinterStatus>();
-
+    
     bool isbusy = true;
 
     protected override async Task OnInitializedAsync()
@@ -55,11 +60,12 @@ else
         statuses.Clear();
         isbusy = true;
         await InvokeAsync(StateHasChanged);
-        foreach (var printer in PrinterFactory.GetPrinters())
+        
+        foreach (var printer in await index.GetPrintersAsync())
         {
             try
             {
-                statuses.Add(await printer.GetStatusAsync());
+                statuses.Add(await printer.PrinterConn.GetStatusAsync());
             }
             catch (Exception e)
             {
