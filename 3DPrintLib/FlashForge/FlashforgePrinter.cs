@@ -13,6 +13,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Security.Cryptography;
 
 namespace PrintLib.FlashForge
 {
@@ -55,7 +56,18 @@ namespace PrintLib.FlashForge
             {
                 _Logger.LogError(e, "Error while trying continue a print" + e.Message);
             }
-        }  
+        }
+
+        public string GetIdentifier()
+        {
+            using SHA256 sha = SHA256.Create();
+
+            byte[] data = Encoding.UTF8.GetBytes($"{_Options.SerialNumber}:{_Options.PrinterIP}:{_Options.Port}");
+
+            byte[] identifier = sha.ComputeHash(data);
+
+            return Convert.ToBase64String(identifier);
+        }
 
         public async Task<JobStatus> GetJobStatusAsync()
         {
@@ -116,7 +128,7 @@ namespace PrintLib.FlashForge
                     FileThumbnail = Response?.detail?.PrintFileThumbUrl ?? null,
                     PrinterCam = Response?.detail?.CameraStreamUrl ?? null,
                     Status = Response?.detail?.Status ?? "N/A",
-                    Progress = Convert.ToInt32(Response?.detail?.PrintProgress ?? 0),
+                    Progress = Convert.ToInt32((Response?.detail?.PrintProgress * 100) ?? 0),
                     info = new()
                     {
                         {"Estimated time",Response?.detail?.EstimatedTime ?? "N/A" },
@@ -273,6 +285,8 @@ namespace PrintLib.FlashForge
 
             return client;
         }
+
+
 
     }
 }

@@ -1,0 +1,122 @@
+﻿@inject IDistributedCache _cache;
+
+<MudItem sm="12" md="3">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@status.PrinterName</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudAlert Severity="Severity.Info">@status.Status</MudAlert>
+                <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
+                    <MudText Typo="Typo.subtitle1" Color="Color.Dark">
+                        <b>@(status.Progress)%</b>
+                    </MudText>
+                </MudProgressLinear>
+        </MudCardContent>
+    </MudCard>
+</MudItem>
+
+@code {
+
+    PrinterStatus status = new PrinterStatus();
+
+    bool IsBusy = false;
+
+    bool updated = false;
+
+    bool firstLoad = true;
+
+    [Parameter]
+    public bool IsKiosk { get; set; } = false;
+
+    [Parameter]
+    public IPrinter Printer { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await update();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task update()
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        if (updated)
+        {
+            return;
+        }
+        
+        IsBusy = true;
+        await InvokeAsync(StateHasChanged);
+
+        DistributedCacheEntryOptions cacheoptions = new()
+        {
+            AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(10)
+        };
+
+        string identifier = Printer.GetIdentifier();
+
+        var cached = await _cache.GetStringAsync(identifier);
+
+        if (cached != null)
+        {
+            if (firstLoad)
+            {
+                status = JsonConvert.DeserializeObject<PrinterStatus>(cached) ?? new PrinterStatus();
+                IsBusy = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        else
+        {
+            status = await Printer.GetStatusAsync();
+
+            cached = JsonConvert.SerializeObject(status);
+
+            await _cache.SetStringAsync(identifier, cached, cacheoptions);
+
+            IsBusy = false;
+            await InvokeAsync(StateHasChanged);
+        }
+
+        
+    }
+
+    protected override bool ShouldRender()
+    {
+        return true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!updated)
+        {
+            if (!IsBusy)
+            {
+                await update();
+                updated = true;
+            }
+        }
+        else
+        {
+            updated = false;
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        
+
+        return base.OnParametersSetAsync();
+    }
+    
+
+}

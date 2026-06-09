@@ -51,5 +51,7 @@ namespace PrintLib
         /// </summary>
         /// <returns></returns>
         public Task<JobStatus> GetJobStatusAsync();
+
+        public string GetIdentifier();
     }
 }

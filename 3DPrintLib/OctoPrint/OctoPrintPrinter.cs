@@ -1,9 +1,10 @@
-﻿using PrintLib.OctoPrint.OctoDtos;
-using PrintLib;
+﻿using PrintLib;
+using PrintLib.OctoPrint.OctoDtos;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace PrintLib.OctoPrint
@@ -135,6 +136,17 @@ namespace PrintLib.OctoPrint
             int procent = Convert.ToInt32(proc * time);
 
             return procent;
+        }
+
+        public string GetIdentifier()
+        {
+            using SHA256 sha = SHA256.Create();
+
+            byte[] data = Encoding.UTF8.GetBytes($"{_options.EndPoint}");
+
+            byte[] identifier = sha.ComputeHash(data);
+
+            return Convert.ToBase64String(identifier);
         }
     }
 }

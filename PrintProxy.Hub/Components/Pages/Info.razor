@@ -1,8 +1,12 @@
-﻿@page "/"
+﻿@page "/info"
 @inject IPrinterFactory PrinterFactory
 @inject ILogger<Home> _logger;
-<PageTitle>Home</PageTitle>
-<MudButton Variant="Variant.Filled" OnClick="ReloadAsync" Disabled="isbusy" Color="Color.Primary" Style="margin-top:2px;">Refresh</MudButton>
+@implements IDisposable
+@layout KioskLayout
+
+<PageTitle>Info Screen</PageTitle>
+
+<h5>@DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</h5>
 
 <MudGrid Style="margin-top:2px;">
     @foreach (var printer in Printers)
@@ -11,18 +15,24 @@
     }
 </MudGrid>
 
-@code {
+    @code {
 
     bool isbusy = true;
+    System.Timers.Timer timer = new(10000);
 
     public IEnumerable<IPrinter> Printers = new List<IPrinter>();
 
     protected override async Task OnInitializedAsync()
     {
+
+        timer.Elapsed += (s, e) => InvokeAsync(ReloadAsync);    
+
         Printers = PrinterFactory.GetPrinters();
 
         await ReloadAsync();
-        
+
+        timer.Start();
+
         await base.OnInitializedAsync();
     }
 
@@ -32,6 +42,12 @@
         await InvokeAsync(StateHasChanged);
         isbusy = false;
         await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer.Stop();
+        timer.Dispose();
     }
 
 }
