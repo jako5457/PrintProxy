@@ -32,5 +32,24 @@ namespace PrintProxy.Hub.Services
             }
         }
 
+        public IPrinter? GetPrinterByIdentifier(string identifier)
+        {
+            var Octoprinteroptions = _config.Octoprint.FirstOrDefault(p => p.Identifier == identifier);
+
+            if (Octoprinteroptions != null)
+            {
+                return new OctoPrintPrinter(_httpClientFactory, Octoprinteroptions);
+            }
+
+            var Flashprinteroptions = _config.Flashforge.FirstOrDefault(p => p.Identifier == identifier);
+
+            if (Flashprinteroptions != null)
+            {
+                return new FlashforgePrinter(_httpClientFactory, _serviceProvider.GetRequiredService<ILogger<FlashforgePrinter>>(), Flashprinteroptions);
+            }
+
+            return null;
+        }
+
     }
 }

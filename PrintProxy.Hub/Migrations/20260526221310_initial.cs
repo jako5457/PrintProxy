@@ -1,12 +1,12 @@
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using System;
 
 #nullable disable
 
 namespace PrintProxy.Hub.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateIdentitySchema : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +48,20 @@ namespace PrintProxy.Hub.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Printers",
+                columns: table => new
+                {
+                    PrinterId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PrinterName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PrinterIdentifier = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Printers", x => x.PrinterId);
                 });
 
             migrationBuilder.CreateTable(
@@ -240,6 +254,9 @@ namespace PrintProxy.Hub.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Printers");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

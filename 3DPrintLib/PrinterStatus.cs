@@ -26,9 +26,17 @@ namespace PrintLib
         /// </summary>
         public string? PrinterCam { get; set; }
 
+        public string Identifier { get; set; } = string.Empty;
+
         /// <summary>
         /// Additional information about the printer
         /// </summary>
         public Dictionary<string, string> info { get; set; } = new();
+
+        public void addJobStatus(JobStatus status)
+        {
+            Status = status.Status;
+            Progress = status.Progress;
+        }
     }
 }

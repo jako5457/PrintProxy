@@ -79,6 +79,12 @@ namespace PrintLib.OctoPrint
 
             status.PrinterName = connection?.Options.PrinterProfiles.Where(pp => pp.Id == connection.Options.PrinterProfilePreference).Select(pp => pp.Name).FirstOrDefault() ?? "N/A";
             status.Status = connection?.Current.State ?? "N/A";
+            status.Identifier = _options.Identifier;
+
+            var job = await GetJobStatusAsync();
+
+            status.addJobStatus(job);
+
             return status;
         }
 
@@ -126,14 +132,15 @@ namespace PrintLib.OctoPrint
 
         private int CalculateProgress(long time,long timeLeft)
         {
+            
             if (timeLeft == 0)
             {
                 return 0;
             }
 
-            long proc = (time + timeLeft) / 100;
+            double proc = Convert.ToDouble(time) / 100;
 
-            int procent = Convert.ToInt32(proc * time);
+            int procent = Convert.ToInt32((proc - 0.1 ) * timeLeft);
 
             return procent;
         }

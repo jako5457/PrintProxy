@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace PrintLib.OctoPrint
@@ -20,5 +21,19 @@ namespace PrintLib.OctoPrint
         public required string ApiKey { get; set; }
 
         public OctoPrintOptions GetOptions() => this;
+
+        public string Identifier
+        {
+            get
+            {
+                using SHA256 sha = SHA256.Create();
+
+                var data = Encoding.UTF8.GetBytes(ApiKey + EndPoint.ToString());
+
+                var hash = sha.ComputeHash(data);
+
+                return Convert.ToBase64String(hash);
+            }
+        }
     }
 }

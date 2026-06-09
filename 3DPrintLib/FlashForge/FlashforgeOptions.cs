@@ -1,7 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Unicode;
 
 namespace PrintLib.FlashForge
 {
@@ -21,6 +24,20 @@ namespace PrintLib.FlashForge
 
         [JsonIgnore]
         public string FullAddress { get => $"http://{PrinterIP}:{Port}"; }
+
+        [JsonIgnore]
+        public string Identifier { 
+          get
+          {
+                using SHA256 sha = SHA256.Create();
+
+                var data = Encoding.UTF8.GetBytes(SerialNumber + PrinterIP + Port);
+
+                var hash = sha.ComputeHash(data);
+
+                return Convert.ToBase64String(hash);
+          } 
+        }
 
     }
 }

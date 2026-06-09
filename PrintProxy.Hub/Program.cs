@@ -25,6 +25,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddSingleton<IPrinterInfoCache, InMemoryPrinterInfoCache>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
+builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication(options =>
@@ -50,7 +51,17 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+
+
 var app = builder.Build();
+
+using(var scope = app.Services.CreateScope())
+{
+    var indexer = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
+
+    await indexer.BeginIndexingAsync();
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

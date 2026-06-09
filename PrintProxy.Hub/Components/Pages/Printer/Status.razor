@@ -1,0 +1,52 @@
+﻿@page "/printer/status/{Identifier}"
+@inject IPrinterIndexService index
+
+@if (model != null)
+{
+    <MudText Typo="Typo.h6">@status.PrinterName</MudText>
+    <MudAlert Severity="Severity.Info">@status.Status</MudAlert>
+    <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
+        <MudText Typo="Typo.subtitle1" Color="Color.Dark">
+            <b>@(status.Progress)%</b>
+        </MudText>
+    </MudProgressLinear>
+    <MudText Typo="Typo.subtitle1">File: @status.FileName</MudText>
+
+    @if (status.FileThumbnail != null)
+    {
+        <MudImage Src="@status.FileThumbnail" Elevation="25" Class="rounded-lg" />
+    }
+    
+    foreach (var item in status.info)
+    {
+        <MudChip T="string" Variant="Variant.Text" Color="Color.Success">@item.Key: @item.Value</MudChip>
+    }
+}
+else
+{
+    <h3>Printer does not exist</h3>
+}
+
+
+@code {
+    [Parameter]
+    public string Identifier { get; set; } = string.Empty;
+
+    public PrinterModel? model = null;
+
+    public PrinterStatus status = new PrinterStatus();
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await index.GetPrinterByIdentifierAsync(Identifier);
+
+        await Refresh();
+
+        await base.OnInitializedAsync();
+    }
+
+    public async Task Refresh()
+    {
+        status = await model.PrinterConn.GetStatusAsync() ?? null;
+    }
+}

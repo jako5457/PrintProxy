@@ -129,6 +129,7 @@ namespace PrintLib.FlashForge
                     PrinterCam = Response?.detail?.CameraStreamUrl ?? null,
                     Status = Response?.detail?.Status ?? "N/A",
                     Progress = Convert.ToInt32((Response?.detail?.PrintProgress * 100) ?? 0),
+                    Identifier = _Options.Identifier,
                     info = new()
                     {
                         {"Estimated time",Response?.detail?.EstimatedTime ?? "N/A" },
@@ -141,7 +142,7 @@ namespace PrintLib.FlashForge
             catch (Exception e)
             {
                 _Logger.LogError(e, "Error while trying to get printer details: " + e.Message);
-                return new PrinterStatus();
+                throw new PrinterResponseExeption("Error while trying to get printer details:" + e.Message);
             }
         }
 
