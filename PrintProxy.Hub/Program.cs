@@ -37,7 +37,7 @@ builder.Services.AddAuthentication(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
@@ -52,13 +52,14 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 
-
 var app = builder.Build();
 
 using(var scope = app.Services.CreateScope())
 {
     var indexer = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+    await context.Database.EnsureCreatedAsync();
     await indexer.BeginIndexingAsync();
 }
 

@@ -12,7 +12,6 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["PrintProxy.Hub/PrintProxy.Hub.csproj", "PrintProxy.Hub/"]
-COPY ["3DPrintLib/PrintLib.csproj", "3DPrintLib/"]
 RUN dotnet restore "./PrintProxy.Hub/PrintProxy.Hub.csproj"
 COPY . .
 WORKDIR "/src/PrintProxy.Hub"
