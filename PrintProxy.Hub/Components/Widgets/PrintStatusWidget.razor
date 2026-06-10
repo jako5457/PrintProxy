@@ -1,14 +1,25 @@
 ﻿@inject IDistributedCache _cache;
+@inject IPrinterThumbnailService thumbnailService;
 
 <MudItem sm="12" md="3">
     <MudCard>
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText Typo="Typo.h6">@status.PrinterName</MudText>
+                <MudText Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                <MudText Typo="Typo.caption">@status.FileName</MudText>
+                
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
-            <MudAlert Severity="Severity.Info">@status.Status</MudAlert>
+            @if (!string.IsNullOrEmpty(image))
+            {
+                <MudImage Src="@image" Elevation="25" Class="rounded-lg" Width="150" Height="100" />
+            }
+            else
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Class="rounded-lg" Width="150px" Height="100px" />
+            }
+
                 <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
                     <MudText Typo="Typo.subtitle1" Color="Color.Dark">
                         <b>@(status.Progress)%</b>
@@ -21,6 +32,8 @@
 @code {
 
     PrinterStatus status = new PrinterStatus();
+
+    string image = string.Empty;
 
     bool IsBusy = false;
 
@@ -51,7 +64,7 @@
         {
             return;
         }
-        
+
         IsBusy = true;
         await InvokeAsync(StateHasChanged);
 
@@ -80,6 +93,11 @@
             cached = JsonConvert.SerializeObject(status);
 
             await _cache.SetStringAsync(identifier, cached, cacheoptions);
+
+            if (!string.IsNullOrEmpty(status.FileThumbnail))
+            {
+                image = await thumbnailService.GetThumbnail(status.FileThumbnail.ToString());
+            }
 
             IsBusy = false;
             await InvokeAsync(StateHasChanged);
