@@ -1,6 +1,5 @@
 services:
   printproxy.hub:
-    image: ${DOCKER_REGISTRY-}printproxyhub
     build:
       context: .
       dockerfile: PrintProxy.Hub/Dockerfile
