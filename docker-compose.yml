@@ -6,6 +6,10 @@ services:
       dockerfile: PrintProxy.Hub/Dockerfile
     depends_on:
       - db
+    environment:
+      - PRINTER_CONFIG=/PrinterConfig/PrinterConfig.json
+    volumes:
+      - PrinterConfig:/PrinterConfig
   db:
    image: postgres
    restart: always
@@ -16,3 +20,4 @@ services:
 
 volumes:
   PostgressData:
+  PrinterConfig:
