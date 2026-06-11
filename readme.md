@@ -5,12 +5,9 @@ A system for monitoring and maintaining 3D printers
 - Printer Connections
     - [X] Flashforge printers (New API)
     - [X] Octoprint
-- Sevice Roles
-    - Printer Controller
-    - Printer Hub
 
 - Upcoming features
-    - Print UI (Hub)
+    - Print UI
         - Print Queue
         - Printer Grouping
         - Printer Reservation
