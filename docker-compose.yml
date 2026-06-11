@@ -1,9 +1,10 @@
 services:
   printproxy.hub:
-    image: ${DOCKER_REGISTRY-}printproxyhub
     build:
       context: .
       dockerfile: PrintProxy.Hub/Dockerfile
+    ports:
+      - '8181:8080'
     depends_on:
       - db
     environment:
