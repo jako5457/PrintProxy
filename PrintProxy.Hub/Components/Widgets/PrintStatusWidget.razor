@@ -6,8 +6,15 @@
         <MudCardHeader>
             <CardHeaderContent>
                 <MudText Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
-                <MudText Typo="Typo.caption">@status.FileName</MudText>
-                
+                @if (string.IsNullOrEmpty(status.FileName))
+                {
+                    <MudText Typo="Typo.caption">No file</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption">@status.FileName</MudText>
+                }
+
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
@@ -17,7 +24,9 @@
             }
             else
             {
-                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Class="rounded-lg" Width="150px" Height="100px" />
+                <MudPaper Class="pa-4 mud-dark rounded-lg shades-text text-white" Width="150px" Height="100px" Elevation="0">
+                    <MudText Typo="Typo.h6">No image</MudText>
+                </MudPaper>
             }
 
                 <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
