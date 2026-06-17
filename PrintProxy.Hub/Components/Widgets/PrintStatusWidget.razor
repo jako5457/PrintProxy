@@ -1,5 +1,6 @@
 ﻿@inject IDistributedCache _cache;
 @inject IPrinterThumbnailService thumbnailService;
+@inject IDialogService Diag;
 
 <MudItem sm="12" md="3">
     <MudCard>
@@ -34,6 +35,20 @@
                         <b>@(status.Progress)%</b>
                     </MudText>
                 </MudProgressLinear>
+                
+                @if (!IsKiosk)
+                {
+                    <AuthorizeView>
+                        <Authorized>
+                            <MudButtonGroup OverrideStyles="false" >
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
+                                <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
+                            <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="OnPrinterStopAsync">Stop</MudButton>
+                            </MudButtonGroup>
+                        </Authorized>
+                    </AuthorizeView>
+                }
+                
         </MudCardContent>
     </MudCard>
 </MudItem>
@@ -112,7 +127,7 @@
             await InvokeAsync(StateHasChanged);
         }
 
-        
+
     }
 
     protected override bool ShouldRender()
@@ -140,10 +155,29 @@
 
     protected override Task OnParametersSetAsync()
     {
-        
+
 
         return base.OnParametersSetAsync();
     }
-    
 
+    public async Task OnPrinterStopAsync()
+    {
+        var parameters = new DialogParameters<DefaultDialog>
+        {
+            { x => x.ContentText, "Do you really want to stop this printer? The printer cant continue the print." },
+            { x => x.ButtonText, "Stop" },
+            { x => x.Color, Color.Error }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var reference = await Diag.ShowAsync<DefaultDialog>("Stop print", parameters, options);
+
+        var result = await reference.Result;
+
+        if (!result?.Canceled ?? false)
+        {
+            await Printer.StopAsync();
+        }
+    }
 }
