@@ -6,6 +6,7 @@ using PrintProxy.Hub.Components;
 using PrintProxy.Hub.Components.Account;
 using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Services;
+using PrintProxy.Hub.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,14 +46,19 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     options.SignIn.RequireConfirmedAccount = true;
     options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
 })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 
 var app = builder.Build();
+
+await app.SetupDefaultAdminUserAsync(); // Frist time setup
 
 using(var scope = app.Services.CreateScope())
 {
