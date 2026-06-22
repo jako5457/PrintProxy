@@ -58,14 +58,17 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await context.Database.EnsureCreatedAsync();
+}
+
 await app.SetupDefaultAdminUserAsync(); // Frist time setup
 
 using(var scope = app.Services.CreateScope())
 {
     var indexer = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    await context.Database.EnsureCreatedAsync();
     await indexer.BeginIndexingAsync();
 }
 

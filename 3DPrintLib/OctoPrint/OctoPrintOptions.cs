@@ -28,11 +28,11 @@ namespace PrintLib.OctoPrint
             {
                 using SHA256 sha = SHA256.Create();
 
-                var data = Encoding.UTF8.GetBytes(ApiKey + EndPoint.ToString());
+                byte[] data = Encoding.UTF8.GetBytes($"{EndPoint}");
 
-                var hash = sha.ComputeHash(data);
+                byte[] identifier = sha.ComputeHash(data);
 
-                return Convert.ToBase64String(hash);
+                return Convert.ToBase64String(identifier);
             }
         }
     }
