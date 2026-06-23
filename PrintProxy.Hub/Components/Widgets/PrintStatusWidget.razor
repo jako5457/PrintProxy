@@ -1,12 +1,13 @@
 ﻿@inject IDistributedCache _cache;
 @inject IPrinterThumbnailService thumbnailService;
+@inject NavigationManager nav;
 @inject IDialogService Diag;
 
 <MudItem sm="12" md="3">
     <MudCard>
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
                 @if (string.IsNullOrEmpty(status.FileName))
                 {
                     <MudText Typo="Typo.caption">No file</MudText>
