@@ -1,13 +1,23 @@
-﻿@inject IDistributedCache _cache;
+﻿@using PrintProxy.Hub.Components.Account.Pages
+@inject IDistributedCache _cache;
 @inject IPrinterThumbnailService thumbnailService;
 @inject NavigationManager nav;
 @inject IDialogService Diag;
+@inject AuthenticationStateProvider auth;
 
 <MudItem sm="12" md="3">
     <MudCard>
         <MudCardHeader>
             <CardHeaderContent>
-                <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                @if (authorized)
+                {
+                    <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6" Style="cursor:pointer">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                }
+
                 @if (string.IsNullOrEmpty(status.FileName))
                 {
                     <MudText Typo="Typo.caption">No file</MudText>
@@ -66,6 +76,8 @@
 
     bool firstLoad = true;
 
+    bool authorized = false;
+
     [Parameter]
     public bool IsKiosk { get; set; } = false;
 
@@ -74,6 +86,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authstate = await auth.GetAuthenticationStateAsync();
+        authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
         await update();
         await base.OnInitializedAsync();
     }
