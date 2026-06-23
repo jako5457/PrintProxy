@@ -36,6 +36,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
+builder.Services.AddHealthChecks();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -59,6 +61,8 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 var app = builder.Build();
 
 await app.SetupDefaultAdminUserAsync(); // Frist time setup
+
+app.MapHealthChecks("/health");
 
 using(var scope = app.Services.CreateScope())
 {

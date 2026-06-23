@@ -26,5 +26,6 @@ RUN dotnet publish "./PrintProxy.Hub.csproj" -c $BUILD_CONFIGURATION -o /app/pub
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
+HEALTHCHECK --interval=5s --timeout=10s --retries=3 CMD curl --silent --fail http://localhost/health
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "PrintProxy.Hub.dll"]
