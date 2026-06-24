@@ -30,25 +30,25 @@ namespace PrintProxy.Hub.Services.Files
                             .ToList();
         }
 
-        public async Task SaveFileAsync(FileStream stream,string filename)
+        public async Task SaveFileAsync(Stream stream,string filename)
         {
             byte[] data = new byte[stream.Length];
 
             await stream.ReadExactlyAsync(data, 0, data.Length);
 
-            File.WriteAllBytes(filename, data);
+            File.WriteAllBytes(Path.Combine(_printerFilePath,filename), data);
         }
 
         public async Task DeleteFileAsync(string filename)
         {
-            if (File.Exists(filename))
+            if (File.Exists(Path.Combine(_printerFilePath, filename)))
             {
-                File.Delete(filename);
+                File.Delete(Path.Combine(_printerFilePath, filename));
             }
 
-            if (File.Exists(filename + ".bmp"))
+            if (File.Exists(Path.Combine(_printerFilePath, filename) + ".bmp"))
             {
-                File.Delete(filename + ".bmp");
+                File.Delete(Path.Combine(_printerFilePath, filename) + ".bmp");
             }
         }
     }

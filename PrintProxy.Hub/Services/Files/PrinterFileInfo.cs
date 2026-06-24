@@ -16,7 +16,7 @@ namespace PrintProxy.Hub.Services.Files
 
         public FileInfo FileInfo { get => _FileInfo; }
 
-        public async Task ExtractGcodeThumbnailAsync()
+        public async Task ExtractGcodeThumbnailAsync(string filepath)
         {
             var filedata = File.ReadAllLines(_FileInfo.FullName).Where(l => l.StartsWith("; ")).ToList();
 
@@ -26,15 +26,21 @@ namespace PrintProxy.Hub.Services.Files
 
             foreach (var item in filedata)
             {
-                if (item.StartsWith("; thumbnail begin"))
+                if (item.StartsWith("; thumbnail end"))
                 {
-                    started = true;
+                    break;
                 }
 
                 if (started)
                 {
                     imageData.Add(item);
                 }
+
+                if (item.StartsWith("; thumbnail begin"))
+                {
+                    started = true;
+                }
+
             }
 
             imageData = imageData.Select(d => d.Replace("; ", "")).ToList();
@@ -46,17 +52,17 @@ namespace PrintProxy.Hub.Services.Files
 
             byte[] Data = Convert.FromBase64String(base64image);
 
-            File.WriteAllBytes(_FileInfo.Name + ".bmp", Data);
+            File.WriteAllBytes(Path.Combine(filepath,_FileInfo.Name) + ".bmp", Data);
         }
 
-        public async Task<string> GetThumbnailAsync()
+        public async Task<string> GetThumbnailAsync(string filepath)
         {
             if (!File.Exists(_FileInfo.Name + ".bmp"))
             {
-                await ExtractGcodeThumbnailAsync();
+                await ExtractGcodeThumbnailAsync(filepath);
             }
 
-            var data = File.ReadAllBytes(_FileInfo.Name + ".bmp");
+            var data = File.ReadAllBytes(Path.Combine(filepath, _FileInfo.Name) + ".bmp");
 
             string base64 = Convert.ToBase64String(data);
 

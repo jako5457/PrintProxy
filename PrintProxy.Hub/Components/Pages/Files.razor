@@ -1,21 +1,29 @@
 ﻿@page "/files"
 @inject IPrinterfileService fileService
+@inject IDialogService Diag;
+@inject IConfiguration config;
 
 <MudTable T="PrinterFileInfo" Items="files" Loading="IsLoading" >
     <ToolBarContent>
         <MudText Typo="Typo.h6">Files</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Sync" title="Update"></MudIconButton>
-        <MudIconButton Icon="@Icons.Material.Filled.Upload" title="Upload"></MudIconButton>
+        <MudIconButton Icon="@Icons.Material.Filled.Upload" OnClick="OnUploadAsync" title="Upload"></MudIconButton>
         <MudSpacer />
-        <MudTextField T="string" @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>Image</MudTh>
         <MudTh>FileName</MudTh>
+        <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd><MudImage Src="@LoadThumb(context)"/></MudTd>
+        <MudTd><MudImage Width="75" Src="@LoadThumb(context)"/></MudTd>
         <MudTd>@context.FileInfo.Name</MudTd>
+        <MudTd>
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" title="Delete" OnClick="() => DeleteFileAsync(context.FileInfo.Name)" Color="Color.Error"></MudIconButton>
+            </MudButtonGroup>
+        </MudTd>
     </RowTemplate>
     <NoRecordsContent>
         <MudText>No files found</MudText>
@@ -48,9 +56,31 @@
 
     public string LoadThumb(PrinterFileInfo info)
     {
-        var task = info.GetThumbnailAsync();
+        string printerFilePath = config.GetValue<string>("GCODE_FILE_DIR", "GcodeFiles");
+
+        var task = info.GetThumbnailAsync(printerFilePath);
 
         return task.GetAwaiter().GetResult();
+    }
+
+    public async Task OnUploadAsync()
+    {
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, BackdropClick = false };
+
+        var reference = await Diag.ShowAsync<UploadDialog>("Upload",options);
+
+        var result = await reference.Result;
+
+        if (!result.Canceled)
+        {
+            await Update();
+        }
+    }
+
+    public async Task DeleteFileAsync(string file)
+    {
+        await fileService.DeleteFileAsync(file);
+        await Update();
     }
 
 }

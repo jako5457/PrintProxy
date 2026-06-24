@@ -4,6 +4,6 @@
     {
         Task DeleteFileAsync(string filename);
         List<PrinterFileInfo> GetFiles();
-        Task SaveFileAsync(FileStream stream, string filename);
+        Task SaveFileAsync(Stream stream, string filename);
     }
 }
