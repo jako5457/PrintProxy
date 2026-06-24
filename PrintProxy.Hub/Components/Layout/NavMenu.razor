@@ -4,6 +4,7 @@
 
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
     <AuthorizeView>
         <Authorized>
             <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
@@ -20,6 +21,7 @@
             <MudNavLink Href="Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login</MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
+   
 </MudNavMenu>
 
 

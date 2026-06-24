@@ -9,8 +9,10 @@ services:
       - db
     environment:
       - PRINTER_CONFIG=/PrinterConfig/PrinterConfig.json
+      - GCODE_FILE_DIR=/GcodeFiles
     volumes:
-      - PrinterConfig:/PrinterConfig 
+      - PrinterConfig:/PrinterConfig
+      - GcodeFiles:/GcodeFiles 
   db:
    image: postgres
    restart: always
@@ -22,3 +24,4 @@ services:
 volumes:
   PostgressData:
   PrinterConfig:
+  GcodeFiles:

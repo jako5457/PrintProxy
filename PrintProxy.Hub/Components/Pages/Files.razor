@@ -1,0 +1,56 @@
+﻿@page "/files"
+@inject IPrinterfileService fileService
+
+<MudTable T="PrinterFileInfo" Items="files" Loading="IsLoading" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Files</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Sync" title="Update"></MudIconButton>
+        <MudIconButton Icon="@Icons.Material.Filled.Upload" title="Upload"></MudIconButton>
+        <MudSpacer />
+        <MudTextField T="string" @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Image</MudTh>
+        <MudTh>FileName</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd><MudImage Src="@LoadThumb(context)"/></MudTd>
+        <MudTd>@context.FileInfo.Name</MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No files found</MudText>
+    </NoRecordsContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+
+@code {
+    List<PrinterFileInfo> files = new();
+
+    string searchString = string.Empty;
+    bool IsLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Update();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task Update()
+    {
+        IsLoading = true;
+        files = fileService.GetFiles();
+        IsLoading = false;
+    }
+
+    public string LoadThumb(PrinterFileInfo info)
+    {
+        var task = info.GetThumbnailAsync();
+
+        return task.GetAwaiter().GetResult();
+    }
+
+}

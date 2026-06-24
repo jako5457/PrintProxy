@@ -7,6 +7,7 @@ using PrintProxy.Hub.Components.Account;
 using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Services;
 using PrintProxy.Hub.Extensions;
+using PrintProxy.Hub.Services.Files;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,7 @@ builder.Services.AddScoped<IPrinterThumbnailService,PrinterThumbnailService>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
+builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication(options =>
