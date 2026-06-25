@@ -3,10 +3,10 @@
 @inject NavigationManager NavigationManager
 
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.LocalPrintshop">Printers</MudNavLink>
     <AuthorizeView>
         <Authorized>
+            <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
             <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
             <form action="Account/Logout" method="post">
                 <AntiforgeryToken />

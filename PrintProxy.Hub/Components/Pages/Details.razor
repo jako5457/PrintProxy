@@ -16,7 +16,7 @@
                     ">
                     <MudText Typo="Typo.h4" Class="mt-1 mb-2">
                         @status.PrinterName
-                        <MudChip T="string" Size="Size.Large" Color="@status.Status.GetStatusColor()">@status.Status</MudChip>
+                        <MudChip Size="Size.Large" Color="@status.Status.GetStatusColor()" T="string" Text="status.Status"></MudChip>
                     </MudText>
                     <MudText Typo="Typo.h5" Class="mb-2">@status.FileName</MudText>
                     @if (!string.IsNullOrEmpty(image))
@@ -47,13 +47,6 @@
                     </MudButtonGroup>
                 </MudItem>
             </MudGrid>
-        </MudCardContent>
-    </MudCard>
-    
-    <MudCard Class="mt-1">
-        <MudCardHeader>Files</MudCardHeader>
-        <MudCardContent>
-            VIP
         </MudCardContent>
     </MudCard>
 }

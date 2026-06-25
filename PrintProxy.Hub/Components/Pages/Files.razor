@@ -1,5 +1,6 @@
 ﻿@page "/files"
 @inject IPrinterfileService fileService
+@attribute [Authorize]
 @inject IDialogService Diag;
 @inject IConfiguration config;
 
@@ -20,9 +21,8 @@
         <MudTd><MudImage Width="75" Src="@LoadThumb(context)"/></MudTd>
         <MudTd>@context.FileInfo.Name</MudTd>
         <MudTd>
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" title="Delete" OnClick="() => DeleteFileAsync(context.FileInfo.Name)" Color="Color.Error"></MudIconButton>
-            </MudButtonGroup>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" title="Delete" OnClick="() => DeleteFileAsync(context.FileInfo.Name)" Color="Color.Error"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Print" title="Print" OnClick="() => PrintAsync(context)" Color="Color.Info"></MudIconButton>
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>
@@ -65,7 +65,7 @@
 
     public async Task OnUploadAsync()
     {
-        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall, BackdropClick = false };
+        var options = new DialogOptions() { CloseButton = false, MaxWidth = MaxWidth.ExtraSmall, BackdropClick = false };
 
         var reference = await Diag.ShowAsync<UploadDialog>("Upload",options);
 
@@ -83,4 +83,17 @@
         await Update();
     }
 
+    public async Task PrintAsync(PrinterFileInfo file)
+    {
+        var parameters = new DialogParameters<PrintDialog>
+        {
+            { x => x.file, file }
+        };
+
+        var options = new DialogOptions() { CloseButton = false,BackdropClick = false, MaxWidth = MaxWidth.Medium };
+
+        var reference = await Diag.ShowAsync<PrintDialog>($"Print {file.FileInfo.Name}", parameters, options);
+
+        await reference.Result;
+    }
 }
