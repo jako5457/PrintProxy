@@ -7,6 +7,7 @@ using PrintProxy.Hub.Components.Account;
 using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Services;
 using PrintProxy.Hub.Extensions;
+using PrintProxy.Hub.Services.Files;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,7 @@ builder.Services.AddScoped<IPrinterThumbnailService,PrinterThumbnailService>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
+builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication(options =>
@@ -35,6 +37,8 @@ builder.Services.AddAuthentication(options =>
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
+
+builder.Services.AddHealthChecks();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -58,14 +62,19 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await context.Database.EnsureCreatedAsync();
+}
+
 await app.SetupDefaultAdminUserAsync(); // Frist time setup
+
+app.MapHealthChecks("/health");
 
 using(var scope = app.Services.CreateScope())
 {
     var indexer = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    await context.Database.EnsureCreatedAsync();
     await indexer.BeginIndexingAsync();
 }
 

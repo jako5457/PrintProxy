@@ -31,11 +31,11 @@ namespace PrintLib.FlashForge
           {
                 using SHA256 sha = SHA256.Create();
 
-                var data = Encoding.UTF8.GetBytes(SerialNumber + PrinterIP + Port);
+                byte[] data = Encoding.UTF8.GetBytes($"{SerialNumber}:{PrinterIP}:{Port}");
 
-                var hash = sha.ComputeHash(data);
+                byte[] identifier = sha.ComputeHash(data);
 
-                return Convert.ToBase64String(hash);
+                return Convert.ToBase64String(identifier);
           } 
         }
 

@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@inject PrintProxy.Hub.Services.Files.IPrinterfileService fileService
+
+<MudContainer>
+    @if (Uploading)
+    {
+        <MudText>Uploading files....</MudText>
+    }
+    else
+    {
+        <MudFileUpload @bind-Files=_file DragAndDrop="true" Accept=".gcode"></MudFileUpload>
+
+        <MudButton Variant="Variant.Filled" color="Color.Primary" Class="mt-2 mb-2" OnClick="() => UploadAsync()">Upload files</MudButton>
+        <MudButton Variant="Variant.Filled" color="Color.Error" Class="mt-2 mb-2" OnClick="() => MudDialog.Cancel()">Cancel</MudButton>
+    }
+</MudContainer>
+
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private IBrowserFile _file;
+
+    public MudFileUpload<IBrowserFile> fileupload;
+
+    public bool Uploading = false;
+
+    public async Task UploadAsync()
+    {
+        Uploading = true;
+        await InvokeAsync(StateHasChanged);
+
+        await fileService.SaveFileAsync(_file.OpenReadStream(8000000000), _file.Name);
+
+        MudDialog.Close();
+    }
+
+}

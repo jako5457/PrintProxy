@@ -1,0 +1,100 @@
+﻿@page "/details/{id}"
+@attribute [Authorize]
+@inject IPrinterFactory printerFactory;
+@inject IDialogService Diag;
+@inject IPrinterThumbnailService thumbnailService;
+
+
+<PageTitle>Printer Details - @status.PrinterName</PageTitle>
+
+@if (printer != null)
+{
+    <MudCard>
+        <MudCardContent>
+            <MudGrid Class="">
+                <MudItem md="3
+                    ">
+                    <MudText Typo="Typo.h4" Class="mt-1 mb-2">
+                        @status.PrinterName
+                        <MudChip Size="Size.Large" Color="@status.Status.GetStatusColor()" T="string" Text="status.Status"></MudChip>
+                    </MudText>
+                    <MudText Typo="Typo.h5" Class="mb-2">@status.FileName</MudText>
+                    @if (!string.IsNullOrEmpty(image))
+                    {
+                        <MudImage Src="@image" Elevation="25" Class="rounded-lg" Width="250" Height="200" />
+                    }
+                    else
+                    {
+                        <MudPaper Class="pa-4 mud-dark rounded-lg shades-text text-white" Width="250px" Height="200px" Elevation="0">
+                            <MudText Typo="Typo.h6">No image</MudText>
+                        </MudPaper>
+                    }
+                </MudItem>
+                <MudSpacer></MudSpacer>
+                <MudItem md="3">
+                    <MudPaper Class="mud-dark text-white rounded-lg shades-text" Width="240px" Height="240px">
+                        <MudProgressCircular Color="Color.Tertiary" Style="height: 200px; width: 200px" Value="status.Progress" Max="100" Class="mt-5 ml-5">
+                            <MudText Typo="Typo.h2" Color="Color.Tertiary">
+                                <b>@(status.Progress)%</b>
+                            </MudText>
+                        </MudProgressCircular>
+                    </MudPaper>
+
+                    <MudButtonGroup Class="mt-3" OverrideStyles="false">
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="() => printer.ContinueAsync()">Continue</MudButton>
+                        <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="() => printer.PauseAsync()">Pause</MudButton>
+                        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="OnPrinterStopAsync">Stop</MudButton>
+                    </MudButtonGroup>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudText>No printer found</MudText>
+}
+
+
+@code {
+
+    [Parameter]
+    public string id { get; set; } = string.Empty;
+
+    public IPrinter printer = null!;
+    public PrinterStatus status = new PrinterStatus();
+    public string image = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        printer = printerFactory.GetPrinterByIdentifier(id) ?? null!;
+
+        status = await printer.GetStatusAsync();
+
+        image = await thumbnailService.GetThumbnail(status.FileThumbnail);
+
+        await base.OnInitializedAsync();
+    }
+
+    public async Task OnPrinterStopAsync()
+    {
+        var parameters = new DialogParameters<DefaultDialog>
+        {
+            { x => x.ContentText, "Do you really want to stop this printer? The printer cant continue the print." },
+            { x => x.ButtonText, "Stop" },
+            { x => x.Color, Color.Error }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var reference = await Diag.ShowAsync<DefaultDialog>("Stop print", parameters, options);
+
+        var result = await reference.Result;
+
+        if (!result?.Canceled ?? false)
+        {
+            await printer.StopAsync();
+        }
+    }
+
+}

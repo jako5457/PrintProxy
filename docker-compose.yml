@@ -9,16 +9,19 @@ services:
       - db
     environment:
       - PRINTER_CONFIG=/PrinterConfig/PrinterConfig.json
+      - GCODE_FILE_DIR=/GcodeFiles
     volumes:
       - PrinterConfig:/PrinterConfig
+      - GcodeFiles:/GcodeFiles:rw
   db:
    image: postgres
    restart: always
    volumes:
-    -  PostgressData:/var/lib/postgresql 
+    -  PostgressData:/var/lib/postgresql
    environment:
      POSTGRES_PASSWORD: postgress
 
 volumes:
   PostgressData:
   PrinterConfig:
+  GcodeFiles:

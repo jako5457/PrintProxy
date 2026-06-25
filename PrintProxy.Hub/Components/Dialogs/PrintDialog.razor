@@ -1,0 +1,133 @@
+﻿@inject IPrinterFactory _PrinterFactory
+<MudContainer>
+    @if (IsWorking)
+    {
+        <MudGrid>
+            <MudItem md="4" />
+            <MudItem md="4">
+                <MudText Typo="Typo.subtitle2">@statusText</MudText>
+            </MudItem>
+            <MudItem md="4" />
+        </MudGrid>
+        <MudGrid>
+            <MudItem md="4" />
+            <MudItem md="4">
+                <MudProgressCircular Style="height: 80px; width: 80px" Color="Color.Primary" Value="@progress" Max="@ProgressMax">
+                    <ChildContent>
+                        <MudStack Spacing="0" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                            <MudText Typo="Typo.subtitle2">@progress/@ProgressMax</MudText>
+                        </MudStack>
+                    </ChildContent>
+                </MudProgressCircular>
+            </MudItem>
+            <MudItem md="4" />
+        </MudGrid>
+    }
+    else
+    {
+        <MudGrid Class="pb-3">
+            <MudItem md="12">
+                <MudTable FixedHeader="true" Items="printers" @bind-SelectedItems="selectedPrinters" MultiSelection="true">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Status</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.status.PrinterName</MudTd>
+                        <MudTd><MudChip T="string" Size="Size.Small" Color="@context.status.Status.GetStatusColor()">@context.status.Status</MudChip></MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudItem>
+            <MudItem md="12">
+                <MudButton Variant="Variant.Filled" OnClick="UploadAsync" Color="Color.Primary">Upload</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="UploadAndStartAsync" Color="Color.Primary">Upload and print</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="() => MudDialog.Cancel()" Color="Color.Error">Cancel</MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    public int ProgressMax = 0;
+    public int progress = 0;
+    public string statusText = "Starting upload.";
+
+    private HashSet<PrinterListItem> selectedPrinters = new HashSet<PrinterListItem>();
+    List<PrinterListItem> printers = new();
+
+    public bool IsWorking = false;
+
+    [Parameter]
+    public PrinterFileInfo file { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var printerlist = _PrinterFactory.GetPrinters().ToList();
+        List<PrinterStatus> statuses = new List<PrinterStatus>();
+
+        foreach (var printer in printerlist)
+        {
+            var status = await printer.GetStatusAsync();
+            statuses.Add(status);
+        }
+
+        printers = printerlist.Zip(statuses).Select(p => new PrinterListItem() { printer = p.First , status = p.Second }).ToList();
+
+        await base.OnInitializedAsync();
+    }
+
+    private class PrinterListItem
+    {
+        public IPrinter printer { get; set; }
+
+        public PrinterStatus status { get; set; }
+    }
+
+    public async Task UploadAsync()
+    {
+        IsWorking = true;
+        ProgressMax = selectedPrinters.Count;
+        await InvokeAsync(StateHasChanged);
+
+        foreach (var printer in selectedPrinters)
+        {
+            statusText = $"Uploading to {printer.status.PrinterName}";
+            progress++;
+            await printer.printer.UploadAsync(file.FileInfo.FullName);
+            await InvokeAsync(StateHasChanged);
+        }
+
+        MudDialog.Close();
+    }
+
+    public async Task UploadAndStartAsync()
+    {
+        IsWorking = true;
+        ProgressMax = selectedPrinters.Count;
+        await InvokeAsync(StateHasChanged);
+
+        foreach (var printer in selectedPrinters)
+        {
+            statusText = $"Uploading to {printer.status.PrinterName}";
+            progress++;
+            await InvokeAsync(StateHasChanged);
+
+            await printer.printer.UploadAsync(file.FileInfo.FullName);
+            await Task.Delay(1000);
+
+            statusText = $"Starting print on {printer.status.PrinterName}";
+            await InvokeAsync(StateHasChanged);
+
+            await printer.printer.StartAsync(file.FileInfo.Name);
+        }
+
+        MudDialog.Close();
+    }
+
+
+}
