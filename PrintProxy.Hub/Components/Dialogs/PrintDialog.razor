@@ -26,8 +26,8 @@
     else
     {
         <MudGrid Class="pb-3">
-            <MudItem md="12">
-                <MudTable FixedHeader="true" Items="printers" @bind-SelectedItems="selectedPrinters" MultiSelection="true">
+            <MudItem md="12" sm="12" xs="12">
+                <MudTable FixedHeader="true" Items="printers" @bind-SelectedItems="selectedPrinters" Dense="true" MultiSelection="true">
                     <HeaderContent>
                         <MudTh>Name</MudTh>
                         <MudTh>Status</MudTh>
@@ -38,7 +38,7 @@
                     </RowTemplate>
                 </MudTable>
             </MudItem>
-            <MudItem md="12">
+            <MudItem md="12" sm="12" xs="12">
                 <MudButton Variant="Variant.Filled" OnClick="UploadAsync" Color="Color.Primary">Upload</MudButton>
                 <MudButton Variant="Variant.Filled" OnClick="UploadAndStartAsync" Color="Color.Primary">Upload and print</MudButton>
                 <MudButton Variant="Variant.Filled" OnClick="() => MudDialog.Cancel()" Color="Color.Error">Cancel</MudButton>
