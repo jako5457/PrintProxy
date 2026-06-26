@@ -3,7 +3,7 @@
     public static class StatusTranslator
     {
 
-        public static string[] DangerColors = ["error", "stopped"];
+        public static string[] DangerColors = ["error", "stopped","offline"];
         public static string[] InfoColors = ["printing"];
         public static string[] SucessColors = ["completed"];
 

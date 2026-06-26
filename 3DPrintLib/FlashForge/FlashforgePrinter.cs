@@ -142,7 +142,7 @@ namespace PrintLib.FlashForge
             catch (Exception e)
             {
                 _Logger.LogError(e, "Error while trying to get printer details: " + e.Message);
-                throw new PrinterResponseExeption("Error while trying to get printer details:" + e.Message);
+                return null!;
             }
         }
 

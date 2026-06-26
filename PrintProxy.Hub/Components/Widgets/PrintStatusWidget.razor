@@ -78,6 +78,8 @@
 
     bool authorized = false;
 
+    bool IsOffiline = false;
+
     [Parameter]
     public bool IsKiosk { get; set; } = false;
 
@@ -127,15 +129,38 @@
         }
         else
         {
-            status = await Printer.GetStatusAsync();
 
-            cached = JsonConvert.SerializeObject(status);
-
-            await _cache.SetStringAsync(identifier, cached, cacheoptions);
-
-            if (!string.IsNullOrEmpty(status.FileThumbnail))
+            try
             {
-                image = await thumbnailService.GetThumbnail(status.FileThumbnail.ToString());
+                status = await Printer.GetStatusAsync();
+            }
+            catch (Exception e)
+            {
+                status = new PrinterStatus() { Status = "offline" };
+                IsOffiline = true;
+                throw;
+            }
+
+            if (status == null)
+            {
+                status = new PrinterStatus() { Status = "offline" };
+                IsOffiline = true;
+            }
+            else
+            {
+                IsOffiline = false;
+            }
+
+            if (!IsOffiline)
+            {
+                cached = JsonConvert.SerializeObject(status);
+
+                await _cache.SetStringAsync(identifier, cached, cacheoptions);
+
+                if (!string.IsNullOrEmpty(status.FileThumbnail))
+                {
+                    image = await thumbnailService.GetThumbnail(status.FileThumbnail.ToString());
+                }
             }
 
             IsBusy = false;
