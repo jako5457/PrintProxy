@@ -8,6 +8,7 @@ using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Services;
 using PrintProxy.Hub.Extensions;
 using PrintProxy.Hub.Services.Files;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
