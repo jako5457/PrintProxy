@@ -2,6 +2,7 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+RUN apt update && apt install curl -y
 USER 0
 WORKDIR /app
 EXPOSE 8080
@@ -25,7 +26,7 @@ RUN dotnet publish "./PrintProxy.Hub.csproj" -c $BUILD_CONFIGURATION -o /app/pub
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
+RUN apt update && apt install curl -y
 WORKDIR /app
-HEALTHCHECK --interval=5s --timeout=10s --retries=3 CMD curl --silent --fail http://localhost/health
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "PrintProxy.Hub.dll"]
