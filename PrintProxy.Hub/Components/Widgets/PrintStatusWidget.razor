@@ -109,11 +109,6 @@
         IsBusy = true;
         await InvokeAsync(StateHasChanged);
 
-        DistributedCacheEntryOptions cacheoptions = new()
-        {
-            AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(10)
-        };
-
         string identifier = Printer.GetIdentifier();
 
         var cached = await _cache.GetStringAsync(identifier);
@@ -138,13 +133,14 @@
             {
                 status = new PrinterStatus() { Status = "offline" };
                 IsOffiline = true;
-                throw;
+                image = string.Empty;
             }
 
             if (status == null)
             {
                 status = new PrinterStatus() { Status = "offline" };
                 IsOffiline = true;
+                image = string.Empty;
             }
             else
             {
@@ -155,11 +151,20 @@
             {
                 cached = JsonConvert.SerializeObject(status);
 
+                DistributedCacheEntryOptions cacheoptions = new()
+                {
+                    AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(10)
+                };
+
                 await _cache.SetStringAsync(identifier, cached, cacheoptions);
 
                 if (!string.IsNullOrEmpty(status.FileThumbnail))
                 {
                     image = await thumbnailService.GetThumbnail(status.FileThumbnail.ToString());
+                }
+                else
+                {
+                    image = string.Empty;
                 }
             }
 
