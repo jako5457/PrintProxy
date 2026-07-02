@@ -6,14 +6,16 @@ namespace PrintProxy.Hub.Services
     public class PrinterThumbnailService(IDistributedCache cache, IHttpClientFactory httpClientFactory) : IPrinterThumbnailService
     {
 
-        DistributedCacheEntryOptions cacheoptions = new()
-        {
-            AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(5)
-        };
+        
 
         public async Task<string> GetThumbnail(string url)
         {
             string thumbnail = cache.GetString(url) ?? string.Empty;
+
+            DistributedCacheEntryOptions cacheoptions = new()
+            {
+                AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(5)
+            };
 
             if (string.IsNullOrEmpty(thumbnail))
             {
