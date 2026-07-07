@@ -9,7 +9,7 @@ A system for monitoring and maintaining 3D printers
 
 - [X] Flashforge printers (New API)
 - [X] Octoprint
-- [ ] Moonraker (In process)
+- [X] Moonraker
 - [ ] Prusa Link
 - [ ] Bambu lab (LAN mode)
 
@@ -37,6 +37,12 @@ A system for monitoring and maintaining 3D printers
             "Port":8898,
             "Serialnumber":"<Serialnumber of printer>",
             "check_code":"<Check code of printer>"
+        }
+    ],
+    "moonraker":[
+        {
+            "printer_name": "<printer name shown in UI>",
+            "endpoint": "<host address for Moonraker>"
         }
     ]
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Data.Entities;
 using PrintProxy.Hub.Models;
+using System.Net.NetworkInformation;
 
 namespace PrintProxy.Hub.Services
 {
@@ -65,6 +66,27 @@ namespace PrintProxy.Hub.Services
                             {
                                 PrinterName = status.PrinterName,
                                 PrinterIdentifier = flashprinter.Identifier
+                            };
+
+                            context.Printers.Add(printer);
+                        }
+                    }
+                }
+
+                foreach (var moonraker in configuration.Moonraker)
+                {
+                    if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == moonraker.Identifier))
+                    {
+                        var printerconn = printerFactory.GetPrinterByIdentifier(moonraker.Identifier);
+
+                        if (printerconn != null)
+                        {
+                            var status = await printerconn.GetStatusAsync();
+
+                            Printer printer = new Printer()
+                            {
+                                PrinterName = status.PrinterName,
+                                PrinterIdentifier = moonraker.Identifier
                             };
 
                             context.Printers.Add(printer);

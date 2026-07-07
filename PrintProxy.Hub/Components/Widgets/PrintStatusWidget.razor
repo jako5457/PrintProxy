@@ -6,10 +6,10 @@
 @inject AuthenticationStateProvider auth;
 @inject IPrinterIndexService IndexService;
 
-<MudItem sm="12" md="3">
+<MudItem sm="12" xs="12" md="3">
     <MudCard>
         <MudCardHeader>
-            <CardHeaderContent>
+            <CardHeaderContent >
                 @if (authorized)
                 {
                     <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6" Style="cursor:pointer">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
@@ -19,29 +19,32 @@
                     <MudText Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
                 }
 
-                @if (string.IsNullOrEmpty(status.FileName))
-                {
-                    <MudText Typo="Typo.caption">No file</MudText>
-                }
-                else
-                {
-                    <MudText Typo="Typo.caption">@status.FileName</MudText>
-                }
+                <div style="width:250px;overflow:hidden;height:15px;text-overflow:ellipsis">
+                    @if (string.IsNullOrEmpty(status.FileName))
+                    {
+                        <MudText Typo="Typo.caption" >No file</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.caption">@status.FileName</MudText>
+                    }
+                </div>
+               
 
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
             @if (!string.IsNullOrEmpty(image))
             {
-                <MudImage Src="@image" Elevation="25" Class="rounded-lg" Width="140" Height="110" />
+                <MudImage Src="@image" Elevation="0" Style="background:white" Class="rounded-lg" Width="140" Height="110" />
             }
             else
             {
-                <MudImage Src="~/images/printproxy_logo.svg" Elevation="25" Class="rounded-lg" Width="140" Height="110" />
+                <MudImage Src="./images/printproxy_logo.svg" Elevation="0" Style="background:white" Class="rounded-lg" Width="140" Height="110" />
             }
 
-                <MudProgressLinear Color="Color.Info" Size="Size.Large" Value="status.Progress" Max="100" Class="my-7">
-                    <MudText Typo="Typo.subtitle1" Color="Color.Dark">
+                <MudProgressLinear Color="Color.Info" Size="Size.Large" style="height:20px" Value="status.Progress" Max="100" Class="my-2">
+                    <MudText Typo="Typo.subtitle1">
                         <b>@(status.Progress)%</b>
                     </MudText>
                 </MudProgressLinear>
@@ -50,7 +53,7 @@
                 {
                     <AuthorizeView>
                         <Authorized>
-                            <MudButtonGroup OverrideStyles="false" >
+                            <MudButtonGroup Class="mt-2" OverrideStyles="false" >
                                 <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
                                 <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
                             <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="OnPrinterStopAsync">Stop</MudButton>

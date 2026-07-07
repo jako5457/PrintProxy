@@ -2,6 +2,7 @@
 using PrintLib.OctoPrint;
 using PrintLib;
 using PrintProxy.Hub.Services.Configs;
+using PrintLib.Moonraker;
 
 namespace PrintProxy.Hub.Services
 {
@@ -30,6 +31,11 @@ namespace PrintProxy.Hub.Services
             {
                 yield return new FlashforgePrinter(_httpClientFactory, _serviceProvider.GetRequiredService<ILogger<FlashforgePrinter>>(), flashOptions);
             }
+
+            foreach (var moonOptions in _config.Moonraker)
+            {
+                yield return new MoonrakerPrinter(moonOptions, _httpClientFactory, _serviceProvider.GetRequiredService<ILogger<MoonrakerPrinter>>());
+            }
         }
 
         public IPrinter? GetPrinterByIdentifier(string identifier)
@@ -46,6 +52,13 @@ namespace PrintProxy.Hub.Services
             if (Flashprinteroptions != null)
             {
                 return new FlashforgePrinter(_httpClientFactory, _serviceProvider.GetRequiredService<ILogger<FlashforgePrinter>>(), Flashprinteroptions);
+            }
+
+            var MoonrakerPrinterOptions = _config.Moonraker.FirstOrDefault(p => p.Identifier == identifier);
+
+            if (MoonrakerPrinterOptions != null)
+            {
+                return new MoonrakerPrinter(MoonrakerPrinterOptions, _httpClientFactory, _serviceProvider.GetRequiredService<ILogger<MoonrakerPrinter>>());
             }
 
             return null;

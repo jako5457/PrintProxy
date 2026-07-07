@@ -1,22 +1,26 @@
 ﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using PrintLib;
 using PrintLib.FlashForge;
+using PrintLib.FlashForge.FlashDtos;
+using PrintLib.Moonraker.MoonrakerDtos;
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Security.Cryptography;
 using System.Text;
-using PrintLib.Moonraker.MoonrakerDtos;
-using Newtonsoft.Json;
+using System.Web;
 
 namespace PrintLib.Moonraker
 {
-    internal class MoonrakerPrinter : IPrinter
+    public class MoonrakerPrinter : IPrinter
     {
 
         public MoonrakerOptions _Options;
         private readonly IHttpClientFactory _ClientFactory;
-        private readonly ILogger<FlashforgePrinter> _Logger;
+        private readonly ILogger<MoonrakerPrinter> _Logger;
 
-        public MoonrakerPrinter(MoonrakerOptions options, IHttpClientFactory clientFactory, ILogger<FlashforgePrinter> logger)
+        public MoonrakerPrinter(MoonrakerOptions options, IHttpClientFactory clientFactory, ILogger<MoonrakerPrinter> logger)
         {
             _Options = options;
             _ClientFactory = clientFactory;
@@ -44,7 +48,13 @@ namespace PrintLib.Moonraker
 
         public string GetIdentifier()
         {
-            throw new NotImplementedException();
+            using SHA256 sha = SHA256.Create();
+
+            byte[] data = Encoding.UTF8.GetBytes($"{_Options.Endpoint}:{_Options.PrinterName}");
+
+            byte[] identifier = sha.ComputeHash(data);
+
+            return Convert.ToBase64String(identifier);
         }
 
         public async Task<JobStatus> GetJobStatusAsync() => await GetStatusAsync();
@@ -58,7 +68,7 @@ namespace PrintLib.Moonraker
 
             string data = await response.Content.ReadAsStringAsync();
 
-            MoonrakerStatusResponse? status = JsonConvert.DeserializeObject<MoonrakerStatusResponse>(data);
+            MoonRakerStatusResponse? status = JsonConvert.DeserializeObject<MoonRakerStatusResponse>(data);
 
             if (status == null)
             {
@@ -67,12 +77,12 @@ namespace PrintLib.Moonraker
 
             return new PrinterStatus
             {
-                FileName = status.PrintStats.FileName,
+                FileName = status.result.status.print_stats.filename,
                 Identifier = GetIdentifier(),
-                Status = status.PrintStats.State,
+                Status = status.result.status.print_stats.state,
                 PrinterName = _Options.PrinterName,
-                Progress = status.DisplayStatus.ProgressProcent,
-                FileThumbnail = ""
+                Progress = Convert.ToInt32(status.result.status.display_status.progress * 100),
+                FileThumbnail = $"{_Options.Endpoint}/server/files/gcodes/.thumbs/{Uri.EscapeDataString(status.result.status.print_stats.filename.Replace(".gcode",""))}-300x300.png"
             };
 
         }
@@ -134,9 +144,52 @@ namespace PrintLib.Moonraker
             }
         }
 
-        public Task UploadAsync(string FilePath)
+        public async Task UploadAsync(string FilePath)
         {
-            throw new NotImplementedException();
+            try
+            {
+                HttpClient client = _ClientFactory.CreateClient();
+                client.BaseAddress = new Uri(_Options.Endpoint);
+
+                FileInfo file = new FileInfo(FilePath);
+
+                _Logger.LogInformation("Sending File: " + file.Name);
+
+                var formData = new MultipartFormDataContent();
+
+                formData.Headers.Add("fileSize", file.Length.ToString());
+
+                var fileContent = new ByteArrayContent(File.ReadAllBytes(FilePath));
+
+                fileContent.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "file",
+                    FileName = file.Name
+                };
+
+                formData.Add(fileContent);
+
+                var result = await client.PostAsync("/server/files/upload", formData);
+
+                result.EnsureSuccessStatusCode();
+
+                var json = await result.Content.ReadAsStringAsync();
+
+                var Response = JsonConvert.DeserializeObject<FlashforgeStatusResponse>(json);
+
+                if (Response?.Code < 0)
+                {
+                    throw new PrinterResponseExeption(Response.message);
+                }
+
+                _Logger.LogInformation("Printer Upload Response" + json);
+
+            }
+            catch (Exception e)
+            {
+                _Logger.LogError(e, $"Upload to printer failed: {e.Message}");
+            }
+
         }
     }
 }

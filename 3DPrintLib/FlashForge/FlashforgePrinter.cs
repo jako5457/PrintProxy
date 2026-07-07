@@ -238,9 +238,6 @@ namespace PrintLib.FlashForge
                 _Logger.LogInformation("Sending File: " + file.Name);
 
                 var formData = new MultipartFormDataContent();
-                //formData.Add(new StringContent(_Options.SerialNumber), "serialNumber");
-                //formData.Add(new StringContent(_Options.CheckCode), "checkCode");
-                //formData.Add(new StringContent("false"), "levelingBeforePrint");
 
                 formData.Headers.Add("serialNumber", _Options.SerialNumber);
                 formData.Headers.Add("checkCode", _Options.CheckCode);

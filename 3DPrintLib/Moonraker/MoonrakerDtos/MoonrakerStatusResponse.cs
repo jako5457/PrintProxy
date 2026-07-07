@@ -5,34 +5,46 @@ using System.Text;
 
 namespace PrintLib.Moonraker.MoonrakerDtos
 {
-    public class MoonrakerStatusResponse
+
+    public class MoonRakerStatusResponse
     {
-        [JsonProperty("display_status")]
-        public MoonrakerDisplayStatus DisplayStatus { get; set; }
-
-        [JsonProperty("print_stats")]
-        public MoonrakerPrintStats PrintStats { get; set; }
-
+        public MoonRakerResult result { get; set; }
     }
 
-    public class MoonrakerDisplayStatus
+    public class MoonRakerResult
     {
-        [JsonProperty("progress")]
-        public float Progess { get; set; }
-
-        [JsonIgnore]
-        public int ProgressProcent { get => Convert.ToInt32(Progess * 100); }
+        public float eventtime { get; set; }
+        public MoonRakerStatus status { get; set; }
     }
 
-    public class MoonrakerPrintStats
+    public class MoonRakerStatus
     {
-        [JsonProperty("filename")]
-        public string FileName { get; set; } = string.Empty;
-
-        [JsonProperty("state")]
-        public string State { get; set; } = string.Empty;
-
-        [JsonProperty("message")]
-        public string Message { get; set; } = string.Empty;
+        public MoonRakerDisplay_Status display_status { get; set; }
+        public MoonRakerPrint_Stats print_stats { get; set; }
     }
+
+    public class MoonRakerDisplay_Status
+    {
+        public float progress { get; set; }
+        public string message { get; set; }
+    }
+
+    public class MoonRakerPrint_Stats
+    {
+        public string filename { get; set; }
+        public float total_duration { get; set; }
+        public float print_duration { get; set; }
+        public float filament_used { get; set; }
+        public string state { get; set; }
+        public string message { get; set; }
+        public MoonRakerInfo info { get; set; }
+    }
+
+    public class MoonRakerInfo
+    {
+        public object total_layer { get; set; }
+        public object current_layer { get; set; }
+    }
+
+
 }
