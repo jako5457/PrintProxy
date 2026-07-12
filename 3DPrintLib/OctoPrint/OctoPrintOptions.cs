@@ -22,6 +22,7 @@ namespace PrintLib.OctoPrint
 
         public OctoPrintOptions GetOptions() => this;
 
+        [JsonIgnore]
         public string Identifier
         {
             get

@@ -1,0 +1,93 @@
+﻿@using PrintLib.FlashForge
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Add new Flashforge printer
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (ValidationErrors.Any())
+        {
+            <MudList T="string">
+                @foreach (var item in ValidationErrors)
+                {
+                    <MudListItem Text="@item" />
+                }
+            </MudList>
+        }
+        <MudTextField @bind-Value="@model.IpAddress" Label="Printer IP" />
+        <MudTextField @bind-Value="@model.SerialNumber" Label="Serial Number" />
+        <MudTextField @bind-Value="@model.CheckCode" Label="CheckCode" />
+        <MudTextField InputType="InputType.Number" @bind-Value="@model.port" Label="Port (Optional)" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="CreatePrinter">Add</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    List<string> ValidationErrors = new();
+
+    public void Cancel() => MudDialog.Cancel();
+
+    FlashForgePrinterModel model = new FlashForgePrinterModel();
+
+    public void CreatePrinter()
+    {
+
+        ValidationErrors.Clear();
+
+        @if (string.IsNullOrWhiteSpace(model.IpAddress))
+        {
+            ValidationErrors.Add("Ip address is required");
+        }
+
+        @if (string.IsNullOrWhiteSpace(model.SerialNumber))
+        {
+            ValidationErrors.Add("Serial Number is required");
+        }
+
+        @if (string.IsNullOrWhiteSpace(model.CheckCode))
+        {
+            ValidationErrors.Add("CheckCode is required");
+        }
+
+        if (ValidationErrors.Any())
+        {
+            StateHasChanged();
+            return;
+        }
+
+        FlashforgeOptions options = new()
+            {
+                PrinterIP = model.IpAddress,
+                CheckCode = model.CheckCode,
+                SerialNumber = model.SerialNumber
+            };
+
+        if (model.port != 0)
+        {
+            options.Port = model.port;
+        }
+
+        MudDialog.Close(options);
+
+    }
+
+    private class FlashForgePrinterModel
+    {
+        public string IpAddress { get; set; } = string.Empty;
+
+        public string CheckCode { get; set; } = string.Empty;
+
+        public string SerialNumber { get; set; } = string.Empty;
+
+        public int port { get; set; }
+    };
+}
