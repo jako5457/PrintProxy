@@ -29,7 +29,8 @@
                 <ColGroup>
                     <col style="width:50%;" />
                     <col style="width:30%;" />
-                    <col style="width:20%;" />
+                    <col style="width:15%;" />
+                    <col style="width:5%;" />
                 </ColGroup>
                 <ToolBarContent>
                     <MudText Typo="Typo.h6">Flashforge printers</MudText>
@@ -40,6 +41,7 @@
                     <MudTh>Printer Ip</MudTh>
                     <MudTh>Checkcode</MudTh>
                     <MudTh>Port</MudTh>
+                    <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Printer Ip">@context.PrinterIP</MudTd>
@@ -56,6 +58,7 @@
                     <MudTd DataLabel="Port">
                         <MudTextField InputMode="InputMode.numeric" @bind-Value="context.Port" Required />
                     </MudTd>
+                    <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
                 </RowEditingTemplate>
                 <EditButtonContent Context="button">
                     <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" />
@@ -73,8 +76,9 @@
         <ChildContent>
             <MudTable Items="@Config.Moonraker" ReadOnly="false" RowEditCommit="OnCommit">
                 <ColGroup>
+                    <col style="width:45%;" />
                     <col style="width:50%;" />
-                    <col style="width:50%;" />
+                    <col style="width:5%;" />
                 </ColGroup>
                 <ToolBarContent>
                     <MudText Typo="Typo.h6">Moonraker Printers</MudText>
@@ -84,10 +88,12 @@
                 <HeaderContent>
                     <MudTh>PrinterName</MudTh>
                     <MudTh>EndPoint</MudTh>
+                    <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Printer Ip">@context.PrinterName</MudTd>
                     <MudTd DataLabel="Checkcode">@context.Endpoint</MudTd>
+                    <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
                 </RowTemplate>
                 <RowEditingTemplate>
                     <MudTd DataLabel="Printer Ip">
@@ -113,7 +119,8 @@
             <MudTable Items="@Config.Octoprint" ReadOnly="false" RowEditCommit="OnCommit">
                 <ColGroup>
                     <col style="width:40%;" />
-                    <col style="width:60%;" />
+                    <col style="width:55%;" />
+                    <col style="width:5%;" />
                 </ColGroup>
                 <ToolBarContent>
                     <MudText Typo="Typo.h6">Flashforge printers</MudText>
@@ -123,10 +130,12 @@
                 <HeaderContent>
                     <MudTh>Endpoint</MudTh>
                     <MudTh>Api key</MudTh>
+                    <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Endpoint">@context.EndPoint</MudTd>
                     <MudTd DataLabel="Api key">••••••••••••••••</MudTd>
+                    <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
                 </RowTemplate>
                 <RowEditingTemplate>
                     <MudTd DataLabel="Endpoint">
@@ -229,4 +238,38 @@
         }
     }
 
+    public async Task RemovePrinter(string identifier)
+    {
+        if(Config.Flashforge.Any(fp => fp.Identifier == identifier))
+        {
+            FlashforgeOptions? options = Config.Flashforge.Where(fp => fp.Identifier == identifier).FirstOrDefault();
+
+            if (options != null)
+            {
+                Config.Flashforge.Remove(options);
+            }
+        }
+        else if (Config.Octoprint.Any(op => op.Identifier == identifier))
+        {
+
+            OctoPrintOptions? options = Config.Octoprint.Where(op => op.Identifier == identifier).FirstOrDefault();
+
+            if (options != null)
+            {
+                Config.Octoprint.Remove(options);
+            }
+        }
+        else if (Config.Moonraker.Any(mr => mr.Identifier == identifier))
+        {
+            MoonrakerOptions? options = Config.Moonraker.Where(mr => mr.Identifier == identifier).FirstOrDefault();
+
+            if (options != null)
+            {
+                Config.Moonraker.Remove(options);
+            }
+        }
+
+        HaveChanges = true;
+        await InvokeAsync(StateHasChanged);
+    }
 }
