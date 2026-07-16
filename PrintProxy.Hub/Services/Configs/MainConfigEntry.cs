@@ -1,4 +1,5 @@
 ﻿using PrintLib.FlashForge;
+using PrintLib.Moonraker;
 using PrintLib.OctoPrint;
 using System.Text.Json.Serialization;
 
@@ -11,5 +12,9 @@ namespace PrintProxy.Hub.Services.Configs
 
         [JsonPropertyName("flashforge")]
         public List<FlashforgeOptions> Flashforge { get; set; } = new();
+
+
+        [JsonPropertyName("moonraker")]
+        public List<MoonrakerOptions> Moonraker { get; set; } = new();
     }
 }

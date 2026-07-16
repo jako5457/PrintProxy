@@ -1,0 +1,275 @@
+﻿@page "/config"
+@attribute [Authorize]
+@using PrintProxy.Hub.Components.Dialogs.Configuration;
+@using PrintLib.FlashForge;
+@using PrintLib.OctoPrint;
+@using PrintLib.Moonraker;
+@inject IPrinterConfigurationService _configService;
+@inject ISnackbar _snackbar;
+@inject IDialogService Diag;
+
+<MudToolBar>
+    <MudText Typo="Typo.h4" Class="mt-3">Configuration</MudText>
+    <MudSpacer />
+    @if (HaveChanges)
+    {
+        <MudChip T="string" Icon="@Icons.Material.Filled.Info" IconColor="Color.Warning" Label="true">Configuration have unsaved changes</MudChip>
+    }
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="Save" Disabled="@(!HaveChanges)">Save</MudButton>
+</MudToolBar>
+
+<MudExpansionPanels>
+
+    <MudExpansionPanel>
+        <TitleContent>
+            Flashforge  <MudChip T="string" IconColor="Color.Info" Size="Size.Small">@Config.Flashforge.Count</MudChip>
+        </TitleContent>
+        <ChildContent>
+            <MudTable Items="@Config.Flashforge" ReadOnly="false" RowEditCommit="OnCommit" CanCancelEdit="true">
+                <ColGroup>
+                    <col style="width:50%;" />
+                    <col style="width:30%;" />
+                    <col style="width:15%;" />
+                    <col style="width:5%;" />
+                </ColGroup>
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Flashforge printers</MudText>
+                    <MudSpacer />
+                    <MudButton OnClick="AddFlashforgePrinter">Add</MudButton>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>Printer Ip</MudTh>
+                    <MudTh>Checkcode</MudTh>
+                    <MudTh>Port</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Printer Ip">@context.PrinterIP</MudTd>
+                    <MudTd DataLabel="Checkcode">@context.CheckCode</MudTd>
+                    <MudTd DataLabel="Port">@context.Port</MudTd>
+                </RowTemplate>
+                <RowEditingTemplate>
+                    <MudTd DataLabel="Printer Ip">
+                        <MudTextField @bind-Value="context.PrinterIP" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Checkcode">
+                        <MudTextField @bind-Value="context.CheckCode" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Port">
+                        <MudTextField InputMode="InputMode.numeric" @bind-Value="context.Port" Required />
+                    </MudTd>
+                    <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
+                </RowEditingTemplate>
+                <EditButtonContent Context="button">
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" />
+                </EditButtonContent>
+            </MudTable>
+        </ChildContent>
+        
+    </MudExpansionPanel>
+
+    <MudExpansionPanel>
+
+        <TitleContent>
+            Moonraker  <MudChip T="string" IconColor="Color.Info" Size="Size.Small">@Config.Moonraker.Count</MudChip>
+        </TitleContent>
+        <ChildContent>
+            <MudTable Items="@Config.Moonraker" ReadOnly="false" RowEditCommit="OnCommit">
+                <ColGroup>
+                    <col style="width:45%;" />
+                    <col style="width:50%;" />
+                    <col style="width:5%;" />
+                </ColGroup>
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Moonraker Printers</MudText>
+                    <MudSpacer />
+                    <MudButton OnClick="AddMoonrakerPrinter">Add</MudButton>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>PrinterName</MudTh>
+                    <MudTh>EndPoint</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Printer Ip">@context.PrinterName</MudTd>
+                    <MudTd DataLabel="Checkcode">@context.Endpoint</MudTd>
+                    <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
+                </RowTemplate>
+                <RowEditingTemplate>
+                    <MudTd DataLabel="Printer Ip">
+                        <MudTextField @bind-Value="context.PrinterName" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Checkcode">
+                        <MudTextField @bind-Value="context.Endpoint" Required />
+                    </MudTd>
+                </RowEditingTemplate>
+                <EditButtonContent Context="button">
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" />
+                </EditButtonContent>
+            </MudTable>
+        </ChildContent>
+
+    </MudExpansionPanel>
+
+    <MudExpansionPanel>
+        <TitleContent>
+            Octoprint  <MudChip T="string" IconColor="Color.Info" Size="Size.Small">@Config.Moonraker.Count</MudChip>
+        </TitleContent>
+        <ChildContent>
+            <MudTable Items="@Config.Octoprint" ReadOnly="false" RowEditCommit="OnCommit">
+                <ColGroup>
+                    <col style="width:40%;" />
+                    <col style="width:55%;" />
+                    <col style="width:5%;" />
+                </ColGroup>
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Flashforge printers</MudText>
+                    <MudSpacer />
+                    <MudButton OnClick="AddOctoPrintPrinter">Add</MudButton>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>Endpoint</MudTh>
+                    <MudTh>Api key</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Endpoint">@context.EndPoint</MudTd>
+                    <MudTd DataLabel="Api key">••••••••••••••••</MudTd>
+                    <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
+                </RowTemplate>
+                <RowEditingTemplate>
+                    <MudTd DataLabel="Endpoint">
+                        <MudTextField @bind-Value="context.EndPoint" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Api key">
+                        <MudTextField @bind-Value="context.ApiKey" Required />
+                    </MudTd>
+                </RowEditingTemplate>
+                <EditButtonContent Context="button">
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" />
+                </EditButtonContent>
+            </MudTable>
+        </ChildContent>
+    </MudExpansionPanel>
+
+</MudExpansionPanels>
+
+@code {
+
+    MainConfigEntry Config = new MainConfigEntry();
+
+    bool HaveChanges = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Config = _configService.GetConfig();
+
+        await base.OnInitializedAsync();
+    }
+
+    public async void OnCommit(object _)
+    {
+        HaveChanges = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task Save()
+    {
+        _configService.SaveConfig(Config);
+        _snackbar.Add("Configuration updated", Severity.Success);
+        HaveChanges = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task AddFlashforgePrinter()
+    {
+        var diag = await Diag.ShowAsync<CreateFlashforgePrinterDialog>("Add Flashforge", new DialogOptions() { BackdropClick = false, CloseButton = false });
+
+        DialogResult? result = await diag.Result;
+
+        if (result != null)
+        {
+            if (result.Data != null)
+            {
+                FlashforgeOptions options = (FlashforgeOptions)result.Data;
+                Config.Flashforge.Add(options);
+                _snackbar.Add("New printer Added. remember to save changes.", Severity.Success);
+                await InvokeAsync(StateHasChanged);
+                HaveChanges = true;
+            }
+        }
+    }
+
+    public async Task AddOctoPrintPrinter()
+    {
+        var diag = await Diag.ShowAsync<CreateOctoPrintDialog>("Add OctoPrint", new DialogOptions() { BackdropClick = false, CloseButton = false });
+
+        DialogResult? result = await diag.Result;
+
+        if (result != null)
+        {
+            if (result.Data != null)
+            {
+                OctoPrintOptions options = (OctoPrintOptions)result.Data;
+                Config.Octoprint.Add(options);
+                _snackbar.Add("New printer Added. remember to save changes.", Severity.Success);
+                await InvokeAsync(StateHasChanged);
+                HaveChanges = true;
+            }
+        }
+    }
+
+    public async Task AddMoonrakerPrinter()
+    {
+        var diag = await Diag.ShowAsync<CreateMoonrakerPrinterDialog>("Add Moonraker", new DialogOptions() { BackdropClick = false, CloseButton = false });
+
+        DialogResult? result = await diag.Result;
+
+        if (result != null)
+        {
+            if (result.Data != null)
+            {
+                MoonrakerOptions options = (MoonrakerOptions)result.Data;
+                Config.Moonraker.Add(options);
+                _snackbar.Add("New printer Added. remember to save changes.", Severity.Success);
+                await InvokeAsync(StateHasChanged);
+                HaveChanges = true;
+            }
+        }
+    }
+
+    public async Task RemovePrinter(string identifier)
+    {
+        if(Config.Flashforge.Any(fp => fp.Identifier == identifier))
+        {
+            FlashforgeOptions? options = Config.Flashforge.Where(fp => fp.Identifier == identifier).FirstOrDefault();
+
+            if (options != null)
+            {
+                Config.Flashforge.Remove(options);
+            }
+        }
+        else if (Config.Octoprint.Any(op => op.Identifier == identifier))
+        {
+
+            OctoPrintOptions? options = Config.Octoprint.Where(op => op.Identifier == identifier).FirstOrDefault();
+
+            if (options != null)
+            {
+                Config.Octoprint.Remove(options);
+            }
+        }
+        else if (Config.Moonraker.Any(mr => mr.Identifier == identifier))
+        {
+            MoonrakerOptions? options = Config.Moonraker.Where(mr => mr.Identifier == identifier).FirstOrDefault();
+
+            if (options != null)
+            {
+                Config.Moonraker.Remove(options);
+            }
+        }
+
+        HaveChanges = true;
+        await InvokeAsync(StateHasChanged);
+    }
+}

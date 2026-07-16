@@ -1,0 +1,82 @@
+﻿@using PrintLib.OctoPrint
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Add new Octoprint printer
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (ValidationErrors.Any())
+        {
+            <MudList T="string">
+                @foreach (var item in ValidationErrors)
+                {
+                    <MudListItem Text="@item"/>
+                }
+            </MudList>
+        }
+        <MudTextField @bind-Value="@model.Endpoint" Label="Endpoint" />
+        <MudTextField @bind-Value="@model.ApiKey" Label="Api key" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="CreatePrinter">Add</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    public void Cancel() => MudDialog.Cancel();
+
+    List<string> ValidationErrors = new();
+
+    bool UriValid = true;
+
+    OctoPrintPrinterModel model = new OctoPrintPrinterModel();
+
+    public void CreatePrinter()
+    {
+        ValidationErrors.Clear();
+
+        Uri uri = default!;
+        UriValid = Uri.TryCreate(model.Endpoint,UriKind.Absolute,out uri);
+
+        if(!UriValid)
+        {
+            ValidationErrors.Add("Uri is invalid");
+        }
+
+        if (string.IsNullOrEmpty(model.ApiKey))
+        {
+            ValidationErrors.Add("Api key is required");
+        }
+
+        if (ValidationErrors.Any())
+        {
+            StateHasChanged();
+            return;
+        }
+
+        if (uri != null)
+        {
+            OctoPrintOptions options = new()
+            {
+                ApiKey = model.ApiKey,
+                EndPoint = uri,
+            };
+            MudDialog.Close(options);
+        }
+
+    }
+
+    private class OctoPrintPrinterModel
+    {
+        public string Endpoint { get; set; } = string.Empty;
+
+        public string ApiKey { get; set; } = string.Empty;
+    };
+}

@@ -26,6 +26,11 @@ namespace PrintProxy.Hub.Services
                 byte[] data = await response.Content.ReadAsByteArrayAsync();
                 string type = response.Content.Headers.ContentType.MediaType ?? "image/png";
 
+                if (type == "application/json") // if json discard.
+                {
+                    return null!; 
+                }
+
                 string base64 = Convert.ToBase64String(data);
 
                 thumbnail = $"data:{type};base64,{base64}";
