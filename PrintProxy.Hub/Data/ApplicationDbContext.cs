@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using PrintProxy.Hub.Components.Pages;
 using PrintProxy.Hub.Data.Entities;
 
 namespace PrintProxy.Hub.Data
@@ -9,5 +10,9 @@ namespace PrintProxy.Hub.Data
 
         public DbSet<Printer> Printers { get; set; }
         
+        public DbSet<Tag> Tags { get; set; }
+
+        public DbSet<PrinterFile> Files { get; set; }
+
     }
 }

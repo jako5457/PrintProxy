@@ -5,6 +5,7 @@
 @using PrintLib.OctoPrint;
 @using PrintLib.Moonraker;
 @inject IPrinterConfigurationService _configService;
+@inject IPrinterIndexService _PrinterIndexer;
 @inject ISnackbar _snackbar;
 @inject IDialogService Diag;
 
@@ -177,8 +178,13 @@
     {
         _configService.SaveConfig(Config);
         _snackbar.Add("Configuration updated", Severity.Success);
+
         HaveChanges = false;
         await InvokeAsync(StateHasChanged);
+
+        _snackbar.Add("Updating Index", Severity.Info);
+        await _PrinterIndexer.BeginIndexingAsync();
+        _snackbar.Add("Index Updated", Severity.Success);
     }
 
     public async Task AddFlashforgePrinter()

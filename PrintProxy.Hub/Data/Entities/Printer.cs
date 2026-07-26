@@ -9,5 +9,6 @@
 
         public string PrinterIdentifier { get; set; } = string.Empty;
 
+        public List<Tag> Tags { get; set; } = null!;
     }
 }
