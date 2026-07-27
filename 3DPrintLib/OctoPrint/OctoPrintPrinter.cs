@@ -32,60 +32,75 @@ namespace PrintLib.OctoPrint
 
         public async Task<JobStatus> GetJobStatusAsync()
         {
-            HttpClient client = _clientFactory.CreateAuthorizedClient(_options);
-
-            var response = await client.GetAsync("/api/job");
-
-            response.EnsureSuccessStatusCode();
-
-            OctoPrintJobInfo? info = await response.Content.ReadFromJsonAsync<OctoPrintJobInfo>();
-
-            if (info == null)
+            try
             {
-                throw new Exception("Printer returned invalid response.");
+                HttpClient client = _clientFactory.CreateAuthorizedClient(_options);
+
+                var response = await client.GetAsync("/api/job");
+
+                response.EnsureSuccessStatusCode();
+
+                OctoPrintJobInfo? info = await response.Content.ReadFromJsonAsync<OctoPrintJobInfo>();
+
+                if (info == null)
+                {
+                    return new PrinterStatus() { Identifier = GetIdentifier(), Status = "offline" };
+                }
+
+                JobStatus status = new()
+                {
+                    Status = info.State,
+                    Progress = CalculateProgress(Convert.ToInt64(info.Progress.PrintTime), Convert.ToInt64(info.Progress.PrintTimeLeft))
+                };
+
+                return status;
             }
-
-            JobStatus status = new()
+            catch (Exception)
             {
-                Status = info.State,
-                Progress = CalculateProgress(Convert.ToInt64(info.Progress.PrintTime),Convert.ToInt64(info.Progress.PrintTimeLeft))
-            };
-
-            return status;
+                return new PrinterStatus() { Identifier = GetIdentifier(), Status = "offline" };
+            }
         }
 
         public async Task<PrinterStatus> GetStatusAsync()
         {
-            HttpClient client = _clientFactory.CreateAuthorizedClient(_options);
-
-            PrinterStatus status = new();
-
-            #region Get Server Info
-            OctoPrintVersionInfo? version = await client.GetFromJsonAsync<OctoPrintVersionInfo>("api/server");
-
-            if (version == null)
+            try
             {
-                throw new Exception("Connection to octoprint Failed");
+                HttpClient client = _clientFactory.CreateAuthorizedClient(_options);
+
+                PrinterStatus status = new();
+
+                #region Get Server Info
+                OctoPrintVersionInfo? version = await client.GetFromJsonAsync<OctoPrintVersionInfo>("api/server");
+
+                if (version == null)
+                {
+                    return new PrinterStatus() { Identifier = GetIdentifier(), Status = "offline" };
+                }
+
+                status.info.Add("OctoPrint version", version.Version);
+                if (version.Safemode != null)
+                {
+                    status.info.Add("Safemode", version.Safemode);
+                }
+                #endregion Get Server Info
+
+                OctoPrintConnectionInfo? connection = await client.GetFromJsonAsync<OctoPrintConnectionInfo>("api/connection");
+
+                status.PrinterName = connection?.Options.PrinterProfiles.Where(pp => pp.Id == connection.Options.PrinterProfilePreference).Select(pp => pp.Name).FirstOrDefault() ?? "N/A";
+                status.Status = connection?.Current.State ?? "N/A";
+                status.Identifier = _options.Identifier;
+
+                var job = await GetJobStatusAsync();
+
+                status.addJobStatus(job);
+
+                return status;
+            }
+            catch (Exception)
+            {
+                return new PrinterStatus() { Identifier = GetIdentifier(), Status = "offline" };
             }
             
-            status.info.Add("OctoPrint version", version.Version);
-            if (version.Safemode != null)
-            {
-                status.info.Add("Safemode", version.Safemode);
-            }
-            #endregion Get Server Info
-
-            OctoPrintConnectionInfo? connection = await client.GetFromJsonAsync<OctoPrintConnectionInfo>("api/connection");
-
-            status.PrinterName = connection?.Options.PrinterProfiles.Where(pp => pp.Id == connection.Options.PrinterProfilePreference).Select(pp => pp.Name).FirstOrDefault() ?? "N/A";
-            status.Status = connection?.Current.State ?? "N/A";
-            status.Identifier = _options.Identifier;
-
-            var job = await GetJobStatusAsync();
-
-            status.addJobStatus(job);
-
-            return status;
         }
 
         public async Task PauseAsync()
