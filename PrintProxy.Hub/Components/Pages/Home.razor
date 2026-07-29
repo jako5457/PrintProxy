@@ -3,6 +3,7 @@
 @inject IPrinterIndexService index
 @inject ILogger<Home> _logger;
 @inject NavigationManager nav;
+@inject EmergencyManager _EmergencyManager
 <PageTitle>Printer overview</PageTitle>
 <MudButton Variant="Variant.Filled" OnClick="ReloadAsync" Disabled="isbusy" Color="Color.Primary" Style="margin-top:2px;">Refresh</MudButton>
 
@@ -13,9 +14,11 @@
     }
 </MudGrid>
 
-@code {
+    @code {
 
     bool isbusy = true;
+
+    bool Emergency = false;
 
     public IEnumerable<IPrinter> Printers = new List<IPrinter>();
 
@@ -30,6 +33,7 @@
 
     public async Task ReloadAsync()
     {
+        Emergency = _EmergencyManager.GetState();
         isbusy = true;
         await InvokeAsync(StateHasChanged);
         isbusy = false;
