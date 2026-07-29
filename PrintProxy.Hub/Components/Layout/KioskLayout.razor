@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject EmergencyManager _EmergencyManager
+@inject IDialogService Diag;
 
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -24,4 +27,58 @@
 
 @code {
 
+    public bool emergency = false;
+
+    IDialogReference dialog = null!;
+
+    protected override Task OnInitializedAsync()
+    {
+        emergency = _EmergencyManager.GetState();
+        _EmergencyManager.OnAlarm += Emergency;
+        return base.OnInitializedAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (emergency)
+            {
+                Emergency(true);
+            }
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+    public async void Emergency(bool state)
+    {
+        emergency = state;
+        if (emergency)
+        {
+            DialogOptions options = new()
+                {
+                    CloseButton = false,
+                    BackdropClick = false,
+                    CloseOnEscapeKey = false,
+                    CloseOnNavigation = false,
+                    FullWidth = true,
+                    BackgroundClass = "mud-error",
+                    NoHeader = true
+                };
+
+            dialog = await Diag.ShowAsync<EmergencyStopDiaglog>("Emergency stop",options);
+        }
+        else
+        {
+            if (dialog != null)
+            {
+              await InvokeAsync(dialog.Close);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        _EmergencyManager.OnAlarm -= Emergency;
+    }
 }

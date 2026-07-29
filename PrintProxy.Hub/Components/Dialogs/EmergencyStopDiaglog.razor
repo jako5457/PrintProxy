@@ -1,0 +1,14 @@
+﻿
+<MudGrid>
+    <MudItem md="2" sm="0"/>
+    <MudItem md="8" sm="0" Style="text-align:center">
+        <h1 style="margin:30px" class="mud-text-error" >Emergency Stop</h1>
+        <MudIcon Icon="@Icons.Material.Filled.CrisisAlert" Color="Color.Error" Style="font-size: 16rem;" />
+    </MudItem>
+    <MudItem md="2" sm="0"/>
+</MudGrid>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+}

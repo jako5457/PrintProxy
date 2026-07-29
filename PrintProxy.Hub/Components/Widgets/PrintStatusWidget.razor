@@ -5,6 +5,7 @@
 @inject IDialogService Diag;
 @inject AuthenticationStateProvider auth;
 @inject IPrinterIndexService IndexService;
+@inject EmergencyManager _EmergencyManager
 
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
@@ -84,6 +85,9 @@
 
     [Parameter]
     public bool IsKiosk { get; set; } = false;
+
+    [Parameter]
+    public bool DisableControls { get; set; } = false;
 
     [Parameter]
     public IPrinter Printer { get; set; } = null!;
