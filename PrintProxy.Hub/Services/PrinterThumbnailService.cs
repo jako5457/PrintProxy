@@ -40,7 +40,5 @@ namespace PrintProxy.Hub.Services
 
             return thumbnail;
         }
-
-
     }
 }
