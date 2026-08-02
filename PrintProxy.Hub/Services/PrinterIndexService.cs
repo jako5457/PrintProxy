@@ -165,7 +165,8 @@ namespace PrintProxy.Hub.Services
             {
                PrinterId = p.PrinterId,
                PrinterName = p.PrinterName,
-               PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!
+               PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!,
+               Tags = p.Tags.Select(t => t.TagName).ToArray()
             }).ToListAsync();
 
             return printers.Where(p => p.PrinterConn != null).ToList();
@@ -177,7 +178,8 @@ namespace PrintProxy.Hub.Services
             {
                 PrinterId = p.PrinterId,
                 PrinterName = p.PrinterName,
-                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!
+                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!,
+                Tags = p.Tags.Select(t => t.TagName).ToArray()
             })
             .Where(p => p.PrinterId == id)
             .FirstOrDefaultAsync();
@@ -190,7 +192,8 @@ namespace PrintProxy.Hub.Services
                 PrinterId = p.PrinterId,
                 PrinterName = p.PrinterName,
                 PrinterIdentifier = p.PrinterIdentifier,
-                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!
+                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!,
+                Tags = p.Tags.Select(t => t.TagName).ToArray()
             })
             .Where(p => p.PrinterIdentifier == identifier)
             .FirstOrDefaultAsync();
