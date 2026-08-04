@@ -5,6 +5,7 @@
 @inject IDialogService Diag;
 @inject AuthenticationStateProvider auth;
 @inject IServiceProvider serviceProvider;
+@inject EmergencyManager _EmergencyManager
 
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
@@ -54,9 +55,9 @@
                     <AuthorizeView>
                         <Authorized>
                             <MudButtonGroup Class="mt-2" OverrideStyles="false" >
-                                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
-                                <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
-                            <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="OnPrinterStopAsync">Stop</MudButton>
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
+                            <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
+                            <MudButton Color="Color.Error" Variant="Variant.Filled" Disabled="DisableControls" OnClick="OnPrinterStopAsync">Stop</MudButton>
                             </MudButtonGroup>
                         </Authorized>
                     </AuthorizeView>
@@ -84,6 +85,9 @@
 
     [Parameter]
     public bool IsKiosk { get; set; } = false;
+
+    [Parameter]
+    public bool DisableControls { get; set; } = false;
 
     [Parameter]
     public IPrinter Printer { get; set; } = null!;

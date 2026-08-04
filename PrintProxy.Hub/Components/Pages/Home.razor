@@ -1,39 +1,55 @@
 ﻿@page "/"
 @inject IPrinterFactory PrinterFactory
 @inject IPrinterIndexService index
+@implements IDisposable
+@inject EmergencyManager _EmergencyManager
 @inject ILogger<Home> _logger;
 @inject NavigationManager nav;
+@inject EmergencyManager _EmergencyManager
 <PageTitle>Printer overview</PageTitle>
 <MudButton Variant="Variant.Filled" OnClick="ReloadAsync" Disabled="isbusy" Color="Color.Primary" Style="margin-top:2px;">Refresh</MudButton>
 
 <MudGrid Style="margin-top:2px;">
     @foreach (var printer in Printers)
     {
-        <PrintStatusWidget Printer="printer" IsKiosk="false" />
+        <PrintStatusWidget Printer="printer" DisableControls="Emergency" IsKiosk="false" />
     }
 </MudGrid>
 
-@code {
+    @code {
 
     bool isbusy = true;
+
+    bool Emergency = false;
 
     public IEnumerable<IPrinter> Printers = new List<IPrinter>();
 
     protected override async Task OnInitializedAsync()
     {
         Printers = PrinterFactory.GetPrinters();
-
+        _EmergencyManager.OnAlarm += emergency;
         await ReloadAsync();
-        
+
         await base.OnInitializedAsync();
+    }
+
+    public async void emergency(bool state)
+    {
+        await InvokeAsync(ReloadAsync);
     }
 
     public async Task ReloadAsync()
     {
+        Emergency = _EmergencyManager.GetState();
         isbusy = true;
         await InvokeAsync(StateHasChanged);
         isbusy = false;
         await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _EmergencyManager.OnAlarm -= emergency;
     }
 
 }
