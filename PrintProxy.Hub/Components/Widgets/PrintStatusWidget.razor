@@ -4,7 +4,7 @@
 @inject NavigationManager nav;
 @inject IDialogService Diag;
 @inject AuthenticationStateProvider auth;
-@inject IPrinterIndexService IndexService;
+@inject IServiceProvider serviceProvider;
 
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
@@ -98,6 +98,9 @@
 
     public async Task update()
     {
+
+        using var scope = serviceProvider.CreateAsyncScope();
+
         if (IsBusy)
         {
             return;
@@ -114,6 +117,8 @@
         string identifier = Printer.GetIdentifier();
 
         var cached = await _cache.GetStringAsync(identifier);
+
+        IPrinterIndexService indexService = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
 
         if (cached != null)
         {
@@ -133,14 +138,14 @@
 
                 if (status.Status.ToLower() == "offline")
                 {
-                    var printer = await IndexService.GetPrinterByIdentifierAsync(status.Identifier);
+                    var printer = await indexService.GetPrinterByIdentifierAsync(status.Identifier);
 
                     status.PrinterName = printer?.PrinterName ?? "Printer";
                 }
             }
             catch (Exception)
             {
-                var pr = await IndexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
+                var pr = await indexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
                 status = new PrinterStatus() { Status = "offline", PrinterName = pr?.PrinterName ?? "Printer" };
                 IsOffiline = true;
                 image = string.Empty;
@@ -148,7 +153,7 @@
 
             if (status == null)
             {
-                var pr = await IndexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
+                var pr = await indexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
                 status = new PrinterStatus() { Status = "offline", PrinterName = pr?.PrinterName ?? "Printer" };
                 IsOffiline = true;
                 image = string.Empty;
