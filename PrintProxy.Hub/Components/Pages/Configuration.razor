@@ -42,12 +42,23 @@
                     <MudTh>Printer Ip</MudTh>
                     <MudTh>Checkcode</MudTh>
                     <MudTh>Port</MudTh>
+                    <MudTh>IFS</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Printer Ip">@context.PrinterIP</MudTd>
                     <MudTd DataLabel="Checkcode">@context.CheckCode</MudTd>
                     <MudTd DataLabel="Port">@context.Port</MudTd>
+                    <MudTd DataLabel="Port">
+                        @if (context.MultiColor)
+                        {
+                            @: yes
+                        }
+                        else
+                        {
+                            @: no
+                        }
+                    </MudTd>
                 </RowTemplate>
                 <RowEditingTemplate>
                     <MudTd DataLabel="Printer Ip">
@@ -58,6 +69,9 @@
                     </MudTd>
                     <MudTd DataLabel="Port">
                         <MudTextField InputMode="InputMode.numeric" @bind-Value="context.Port" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Port">
+                        <MudSwitch @bind-Value="context.MultiColor" UncheckedColor="Color.Error" Color="Color.Success" />
                     </MudTd>
                     <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
                 </RowEditingTemplate>

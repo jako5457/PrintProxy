@@ -126,16 +126,14 @@
         }
         else
         {
-
             try
             {
                 status = await Printer.GetStatusAsync();
+                var printerIndexed = await IndexService.GetPrinterByIdentifierAsync(status.Identifier);
 
                 if (status.Status.ToLower() == "offline")
                 {
-                    var printer = await IndexService.GetPrinterByIdentifierAsync(status.Identifier);
-
-                    status.PrinterName = printer?.PrinterName ?? "Printer";
+                    status.PrinterName = printerIndexed?.PrinterName ?? "Printer";
                 }
             }
             catch (Exception)

@@ -82,80 +82,149 @@ namespace PrintProxy.Hub.Services
                         continue;
                     }
                 }
-
-                foreach (var flashprinter in configuration.Flashforge)
+                else
                 {
-                    if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == flashprinter.Identifier))
+                    var printer = await context.Printers.Where(p => p.PrinterIdentifier == Octoprinter.Identifier).FirstOrDefaultAsync();
+
+                    if (printer == null)
                     {
-                        Tag? FlashForgeTag = await context.Tags
-                                                          .Where(t => t.TagName == FlashForgeTagName)
-                                                          .FirstOrDefaultAsync();
+                        continue;
+                    }
 
-                        if (FlashForgeTag == null)
-                        {
-                            break;
-                        }
+                    var printerconn = printerFactory.GetPrinterByIdentifier(Octoprinter.Identifier);
 
-                        var printerconn = printerFactory.GetPrinterByIdentifier(flashprinter.Identifier);
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
 
-                        if (printerconn != null)
-                        {
-                            var status = await printerconn.GetStatusAsync();
+                    var information = await printerconn.GetStatusAsync();
 
-                            Printer printer = new Printer()
-                            {
-                                PrinterName = status.PrinterName,
-                                PrinterIdentifier = flashprinter.Identifier,
-                                Tags = new List<Tag>() { FlashForgeTag }
-                            };
-
-                            context.Printers.Add(printer);
-                        }
+                    if (printer.PrinterName == information.PrinterName)
+                    {
+                        printer.PrinterName = information.PrinterName;
                     }
                 }
 
-                foreach (var moonraker in configuration.Moonraker)
+            }
+
+            foreach (var flashprinter in configuration.Flashforge)
+            {
+                if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == flashprinter.Identifier))
                 {
-                    if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == moonraker.Identifier))
+                    Tag? FlashForgeTag = await context.Tags
+                                                      .Where(t => t.TagName == FlashForgeTagName)
+                                                      .FirstOrDefaultAsync();
+
+                    if (FlashForgeTag == null)
                     {
+                        break;
+                    }
+    
+                    var printerconn = printerFactory.GetPrinterByIdentifier(flashprinter.Identifier);
 
-                        Tag? MoonRakerTag = await context.Tags
-                                                         .Where(t => t.TagName == MoonRakerTagName)
-                                                         .FirstOrDefaultAsync();
+                    if (printerconn != null)
+                    {
+                        var status = await printerconn.GetStatusAsync();
 
-                        if (MoonRakerTag == null)
+                        Printer printer = new Printer()
                         {
-                            break;
-                        }
+                            PrinterName = status.PrinterName,
+                            PrinterIdentifier = flashprinter.Identifier,
+                            Tags = new List<Tag>() { FlashForgeTag }
+                        };
 
-                        var printerconn = printerFactory.GetPrinterByIdentifier(moonraker.Identifier);
-
-                        if (printerconn != null)
-                        {
-                            var status = await printerconn.GetStatusAsync();
-
-                            Printer printer = new Printer()
-                            {
-                                PrinterName = status.PrinterName,
-                                PrinterIdentifier = moonraker.Identifier,
-                                Tags = new List<Tag>() { MoonRakerTag }
-                            };
-
-                            context.Printers.Add(printer);
-                        }
+                        context.Printers.Add(printer);
                     }
                 }
-
-                try
+                else
                 {
-                    await context.SaveChangesAsync();
-                }
-                catch (Exception e)
-                {
-                    logger.LogCritical(e, "Indexing failed...");
-                    Environment.Exit(0);
-                }
+                    var printer = await context.Printers.Where(p => p.PrinterIdentifier == flashprinter.Identifier).FirstOrDefaultAsync();
 
+                    if (printer == null)
+                    {
+                        continue;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(flashprinter.Identifier);
+
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
+
+                    var information = await printerconn.GetStatusAsync();
+
+                    if (printer.PrinterName == information.PrinterName)
+                    {
+                        printer.PrinterName = information.PrinterName;
+                    }
+                }
+            }
+
+            foreach (var moonraker in configuration.Moonraker)
+            {
+                if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == moonraker.Identifier))
+                {
+
+                    Tag? MoonRakerTag = await context.Tags
+                                                     .Where(t => t.TagName == MoonRakerTagName)
+                                                     .FirstOrDefaultAsync();
+
+                    if (MoonRakerTag == null)
+                    {
+                        break;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(moonraker.Identifier);
+
+                    if (printerconn != null)
+                    {
+                        var status = await printerconn.GetStatusAsync();
+
+                        Printer printer = new Printer()
+                        {
+                            PrinterName = status.PrinterName,
+                            PrinterIdentifier = moonraker.Identifier,
+                            Tags = new List<Tag>() { MoonRakerTag }
+                        };
+
+                        context.Printers.Add(printer);
+                    }
+                }
+                else
+                {
+                    var printer = await context.Printers.Where(p => p.PrinterIdentifier == moonraker.Identifier).FirstOrDefaultAsync();
+
+                    if (printer == null)
+                    {
+                        continue;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(moonraker.Identifier);
+
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
+
+                    var information = await printerconn.GetStatusAsync();
+
+                    if (printer.PrinterName == information.PrinterName)
+                    {
+                        printer.PrinterName = information.PrinterName;
+                    }
+                }
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogCritical(e, "Indexing failed...");
+                Environment.Exit(0);
             }
         }
 
