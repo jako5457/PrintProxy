@@ -37,6 +37,7 @@ builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationSer
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
 builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddSingleton<EmergencyManager>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication(options =>

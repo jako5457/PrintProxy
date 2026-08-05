@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata.Ecma335;
+﻿using System.IO.Compression;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace PrintProxy.Hub.Services.Files
@@ -55,18 +56,62 @@ namespace PrintProxy.Hub.Services.Files
             File.WriteAllBytes(Path.Combine(filepath,_FileInfo.Name) + ".bmp", Data);
         }
 
-        public async Task<string> GetThumbnailAsync(string filepath)
+        public async Task Extract3mfThumbnailAsync(string filePath)
         {
-            if (!File.Exists(_FileInfo.Name + ".bmp"))
+            ZipArchive arch = ZipFile.OpenRead(FileInfo.FullName);
+
+            int entryId = 1;
+
+            for (int i = 0; i < 15; i++)
             {
-                await ExtractGcodeThumbnailAsync(filepath);
+                ZipArchiveEntry? GcodeEntry = arch.GetEntry(Path.Combine("Metadata", $"plate_{i}.gcode"));
+
+                if (GcodeEntry != null)
+                {
+                    entryId = i;
+                    break;
+                }
             }
 
-            var data = File.ReadAllBytes(Path.Combine(filepath, _FileInfo.Name) + ".bmp");
+            ZipArchiveEntry? entry = arch.GetEntry(Path.Combine("Metadata",$"plate_{entryId}.png"));
 
-            string base64 = Convert.ToBase64String(data);
+            if (entry != null)
+            {
+                entry.ExtractToFile(Path.Combine(filePath, _FileInfo.Name) + ".png");
+            }
+        }
 
-            return $"data:image/bmp;base64,{base64}";
+        public async Task<string> GetThumbnailAsync(string filepath)
+        {
+
+            if (FileInfo.Extension.Contains("gcode"))
+            {
+                if (!File.Exists(Path.Combine(filepath, _FileInfo.Name) + ".bmp"))
+                {
+                    await ExtractGcodeThumbnailAsync(filepath);
+                }
+
+                var data = File.ReadAllBytes(Path.Combine(filepath, _FileInfo.Name) + ".bmp");
+
+                string base64 = Convert.ToBase64String(data);
+
+                return $"data:image/bmp;base64,{base64}";
+            }
+            else if (FileInfo.Extension.Contains("3mf"))
+            {
+                if (!File.Exists(Path.Combine(filepath, _FileInfo.Name) + ".png"))
+                {
+                    await Extract3mfThumbnailAsync(filepath);
+                }
+
+                var data = File.ReadAllBytes(Path.Combine(filepath, _FileInfo.Name) + ".png");
+
+                string base64 = Convert.ToBase64String(data);
+
+                return $"data:image/png;base64,{base64}";
+            }
+
+            return string.Empty;
         }
 
     }

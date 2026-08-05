@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject ISnackbar _SnackBar;
+@inject EmergencyManager _EmergencyManager
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
@@ -10,6 +13,18 @@
         <MudImage Src="./images/printproxy_logo.svg" Elevation="0" Height="50" />
         <MudText Typo="Typo.h5" Class="ml-3">PrintProxy</MudText>
         <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                @if (emergency)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.DoNotDisturbOnTotalSilence" OnClick="_EmergencyManager.StopAlarmAsync" />
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.DoNotDisturbOn" OnClick="_EmergencyManager.TripAlarmAsync" />
+                }
+            </Authorized>
+        </AuthorizeView>
         <MudToggleIconButton @bind-Toggled="_isDarkMode" Color="Color.Info" ToggledIcon="@Icons.Material.Filled.WbSunny" ToggledColor="Color.Warning" Icon="@Icons.Material.Filled.Nightlight" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
@@ -31,6 +46,52 @@
     private bool _drawerOpen = true;
     private MudTheme _theme = new();
     private bool _isDarkMode;
+    public bool emergency = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        emergency = _EmergencyManager.GetState();
+        _EmergencyManager.OnAlarm += Emergency;
+        return base.OnInitializedAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (emergency)
+            {
+                Emergency(true);
+            }
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+    public void Emergency(bool state)
+    {
+        _SnackBar.Clear();
+        emergency = state;
+        if (emergency)
+        {
+            _SnackBar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+            _SnackBar.Add("Emergency stop Active", Severity.Error, options =>
+            {
+                options.Icon = Icons.Material.Filled.CrisisAlert;
+                options.CloseAfterNavigation = false;
+                options.ShowCloseIcon = false;
+                options.VisibleStateDuration = int.MaxValue;
+            });
+        }
+        else
+        {
+            _SnackBar.Configuration.PositionClass = Defaults.Classes.Position.TopLeft;
+        }
+    }
+
+    public void Dispose()
+    {
+        _EmergencyManager.OnAlarm -= Emergency;
+    }
 }
 
 

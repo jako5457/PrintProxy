@@ -143,7 +143,7 @@ namespace PrintLib.FlashForge
             catch (Exception e)
             {
                 _Logger.LogError(e, "Error while trying to get printer details: " + e.Message);
-                return null!;
+                return new PrinterStatus() { Identifier = GetIdentifier(), Status = "offline" };
             }
         }
 

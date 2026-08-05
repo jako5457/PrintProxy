@@ -8,6 +8,8 @@
 @inject AuthenticationStateProvider auth;
 @inject IPrinterIndexService IndexService;
 @inject ITagService TagService
+@inject IServiceProvider serviceProvider;
+@inject EmergencyManager _EmergencyManager
 
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
@@ -65,9 +67,9 @@
                     <AuthorizeView>
                         <Authorized>
                             <MudButtonGroup Class="mt-2" OverrideStyles="false" >
-                                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
-                                <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
-                            <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="OnPrinterStopAsync">Stop</MudButton>
+                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
+                            <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
+                            <MudButton Color="Color.Error" Variant="Variant.Filled" Disabled="DisableControls" OnClick="OnPrinterStopAsync">Stop</MudButton>
                             </MudButtonGroup>
                         </Authorized>
                     </AuthorizeView>
@@ -99,6 +101,9 @@
     public bool IsKiosk { get; set; } = false;
 
     [Parameter]
+    public bool DisableControls { get; set; } = false;
+
+    [Parameter]
     public IPrinter Printer { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -112,6 +117,9 @@
 
     public async Task update()
     {
+
+        using var scope = serviceProvider.CreateAsyncScope();
+
         if (IsBusy)
         {
             return;
@@ -128,6 +136,8 @@
         string identifier = Printer.GetIdentifier();
 
         var cached = await _cache.GetStringAsync(identifier);
+
+        IPrinterIndexService indexService = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
 
         if (cached != null)
         {
@@ -147,12 +157,14 @@
 
                 if (status.Status.ToLower() == "offline")
                 {
-                    status.PrinterName = printerIndexed?.PrinterName ?? "Printer";
+                    var printer = await indexService.GetPrinterByIdentifierAsync(status.Identifier);
+
+                    status.PrinterName = printer?.PrinterName ?? "Printer";
                 }
             }
             catch (Exception)
             {
-                var pr = await IndexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
+                var pr = await indexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
                 status = new PrinterStatus() { Status = "offline", PrinterName = pr?.PrinterName ?? "Printer" };
                 IsOffiline = true;
                 image = string.Empty;
@@ -160,7 +172,7 @@
 
             if (status == null)
             {
-                var pr = await IndexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
+                var pr = await indexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
                 status = new PrinterStatus() { Status = "offline", PrinterName = pr?.PrinterName ?? "Printer" };
                 IsOffiline = true;
                 image = string.Empty;

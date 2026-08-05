@@ -26,6 +26,7 @@ namespace PrintProxy.Hub.Services.Files
 
             return Directory.GetFiles(_printerFilePath)
                             .Where(fp => !fp.EndsWith(".bmp"))
+                            .Where(fp => !fp.EndsWith(".png"))
                             .Select(fp => new PrinterFileInfo(new FileInfo(fp)))
                             .ToList();
         }
@@ -49,6 +50,11 @@ namespace PrintProxy.Hub.Services.Files
             if (File.Exists(Path.Combine(_printerFilePath, filename) + ".bmp"))
             {
                 File.Delete(Path.Combine(_printerFilePath, filename) + ".bmp");
+            }
+
+            if (File.Exists(Path.Combine(_printerFilePath, filename) + ".png"))
+            {
+                File.Delete(Path.Combine(_printerFilePath, filename) + ".png");
             }
         }
     }

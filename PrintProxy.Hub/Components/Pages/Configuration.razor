@@ -128,7 +128,7 @@
 
     <MudExpansionPanel>
         <TitleContent>
-            Octoprint  <MudChip T="string" IconColor="Color.Info" Size="Size.Small">@Config.Moonraker.Count</MudChip>
+            Octoprint  <MudChip T="string" IconColor="Color.Info" Size="Size.Small">@Config.Octoprint.Count</MudChip>
         </TitleContent>
         <ChildContent>
             <MudTable Items="@Config.Octoprint" ReadOnly="false" RowEditCommit="OnCommit">
@@ -138,7 +138,7 @@
                     <col style="width:5%;" />
                 </ColGroup>
                 <ToolBarContent>
-                    <MudText Typo="Typo.h6">Flashforge printers</MudText>
+                    <MudText Typo="Typo.h6">Octoprint printers</MudText>
                     <MudSpacer />
                     <MudButton OnClick="AddOctoPrintPrinter">Add</MudButton>
                 </ToolBarContent>
