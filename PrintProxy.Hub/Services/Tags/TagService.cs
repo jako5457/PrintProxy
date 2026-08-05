@@ -43,5 +43,17 @@ namespace PrintProxy.Hub.Services.Tags
                 }
             }
         }
+
+        public async Task<List<string>> GetPrinterTagsAsync(string Identifier)
+        {
+            var tags = await _context.Printers.Where(p => p.PrinterIdentifier == Identifier).Select(p => p.Tags).FirstOrDefaultAsync();
+
+            if (tags == null)
+            {
+                return new List<string>();
+            }
+
+            return tags.Select(t => t.TagName).ToList();
+        }
     }
 }

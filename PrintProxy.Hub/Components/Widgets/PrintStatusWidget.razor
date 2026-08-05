@@ -1,10 +1,13 @@
 ﻿@using PrintProxy.Hub.Components.Account.Pages
+@using PrintProxy.Hub.Extensions
+@using PrintProxy.Hub.Services.Tags
 @inject IDistributedCache _cache;
 @inject IPrinterThumbnailService thumbnailService;
 @inject NavigationManager nav;
 @inject IDialogService Diag;
 @inject AuthenticationStateProvider auth;
 @inject IPrinterIndexService IndexService;
+@inject ITagService TagService
 
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
@@ -16,10 +19,18 @@
                 }
                 else
                 {
-                    <MudText Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                    <MudText Typo="Typo.h6">
+                        @status.PrinterName 
+                        <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip>
+                        @foreach (var tag in tags)
+                        {
+                            string style = $"background-color: {tag.GenerateHexColor()}";
+                            <MudChip T="string" Size="Size.Small" Style='@style'>@tag</MudChip>
+                        }
+                    </MudText>
                 }
 
-                <div style="width:250px;overflow:hidden;height:15px;text-overflow:ellipsis">
+                <div style="width:250px;overflow:hidden;height:17px;text-overflow:ellipsis">
                     @if (string.IsNullOrEmpty(status.FileName))
                     {
                         <MudText Typo="Typo.caption" >No file</MudText>
@@ -70,6 +81,8 @@
 
     PrinterStatus status = new PrinterStatus();
 
+    List<string> tags = new List<string>();
+
     string image = string.Empty;
 
     bool IsBusy = false;
@@ -92,6 +105,7 @@
     {
         var authstate = await auth.GetAuthenticationStateAsync();
         authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
+        tags = await TagService.GetPrinterTagsAsync(Printer.GetIdentifier());
         await update();
         await base.OnInitializedAsync();
     }
