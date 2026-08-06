@@ -9,21 +9,23 @@ namespace PrintProxy.Hub.Services.Tags
     {
 
         private readonly IConfiguration _Config;
-        private readonly IPrinterfileService _PrinterfileService;
-        private readonly ApplicationDbContext _context;
+        private readonly IServiceProvider _ServiceProvider;
         private readonly ILogger<TagService> _logger;
 
-        public TagService(IConfiguration config, IPrinterfileService printerfileService, ApplicationDbContext context, ILogger<TagService> logger)
+        public TagService(IConfiguration config,IServiceProvider serviceProvider, ILogger<TagService> logger)
         {
             _Config = config;
-            _PrinterfileService = printerfileService;
-            _context = context;
+            _ServiceProvider = serviceProvider;
             _logger = logger;
         }
 
         public async Task CreateTagAsync(string TagName, bool SytemTag = false)
         {
-            if (!await _context.Tags.Where(t => t.TagName == TagName).AnyAsync())
+            using var scope = _ServiceProvider.CreateScope();
+
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            if (!await context.Tags.Where(t => t.TagName == TagName).AnyAsync())
             {
                 Tag tag = new Tag()
                 {
@@ -33,8 +35,8 @@ namespace PrintProxy.Hub.Services.Tags
 
                 try
                 {
-                    _context.Tags.Add(tag);
-                    await _context.SaveChangesAsync();
+                    context.Tags.Add(tag);
+                    await context.SaveChangesAsync();
                 }
                 catch (Exception e)
                 {
@@ -46,7 +48,10 @@ namespace PrintProxy.Hub.Services.Tags
 
         public async Task<List<string>> GetPrinterTagsAsync(string Identifier)
         {
-            var tags = await _context.Printers.Where(p => p.PrinterIdentifier == Identifier).Select(p => p.Tags).FirstOrDefaultAsync();
+            using var scope = _ServiceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var tags = await context.Printers.Where(p => p.PrinterIdentifier == Identifier).Select(p => p.Tags).FirstOrDefaultAsync();
 
             if (tags == null)
             {

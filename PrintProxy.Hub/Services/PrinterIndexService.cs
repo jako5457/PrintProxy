@@ -13,7 +13,7 @@ namespace PrintProxy.Hub.Services
 
         private const string OctoPrintTagName = "OctoPrint";
         private const string FlashForgeTagName = "Flashforge";
-        private const string MoonRakerTagName = "Flashforge";
+        private const string MoonRakerTagName = "Moonraker";
 
         public async Task BeginIndexingAsync()
         {
