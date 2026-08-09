@@ -2,12 +2,9 @@
 @using PrintProxy.Hub.Extensions
 @using PrintProxy.Hub.Services.Tags
 @inject IDistributedCache _cache;
-@inject IPrinterThumbnailService thumbnailService;
 @inject NavigationManager nav;
 @inject IDialogService Diag;
 @inject AuthenticationStateProvider auth;
-@inject IPrinterIndexService IndexService;
-@inject ITagService TagService
 @inject IServiceProvider serviceProvider;
 @inject EmergencyManager _EmergencyManager
 
@@ -30,23 +27,26 @@
                             <MudChip T="string" Size="Size.Small" Style='@style'>@tag</MudChip>
                         }
                     </MudText>
-                }
-
-                <div style="width:250px;overflow:hidden;height:17px;text-overflow:ellipsis">
-                    @if (string.IsNullOrEmpty(status.FileName))
-                    {
-                        <MudText Typo="Typo.caption" >No file</MudText>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.caption">@status.FileName</MudText>
-                    }
-                </div>
-               
+                }             
+                
+                
 
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
+
+            <div style="width:250px;overflow:hidden;height:17px;text-overflow:ellipsis">
+                @if (string.IsNullOrEmpty(status.FileName))
+                {
+                    <MudText Typo="Typo.caption">No file</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption">@status.FileName</MudText>
+                }
+                
+            </div>
+
             @if (!string.IsNullOrEmpty(image))
             {
                 <MudImage Src="@image" Elevation="0" Style="background:white" Class="rounded-lg" Width="140" Height="110" />
@@ -54,6 +54,12 @@
             else
             {
                 <MudImage Src="./images/printproxy_logo.svg" Elevation="0" Style="background:white" Class="rounded-lg" Width="140" Height="110" />
+                
+            }
+
+            @if(IsBusy)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
             }
 
                 <MudProgressLinear Color="Color.Info" Size="Size.Large" style="height:20px" Value="status.Progress" Max="100" Class="my-2">
@@ -108,17 +114,19 @@
 
     protected override async Task OnInitializedAsync()
     {
+        using var scope = serviceProvider.CreateAsyncScope();
+
+        var tagService = scope.ServiceProvider.GetRequiredService<ITagService>();
+
         var authstate = await auth.GetAuthenticationStateAsync();
         authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
-        tags = await TagService.GetPrinterTagsAsync(Printer.GetIdentifier());
+        tags = await tagService.GetPrinterTagsAsync(Printer.GetIdentifier());
         await update();
         await base.OnInitializedAsync();
     }
 
     public async Task update()
     {
-
-        using var scope = serviceProvider.CreateAsyncScope();
 
         if (IsBusy)
         {
@@ -129,6 +137,8 @@
         {
             return;
         }
+        
+        using var scope = serviceProvider.CreateAsyncScope();
 
         IsBusy = true;
         await InvokeAsync(StateHasChanged);
@@ -138,6 +148,8 @@
         var cached = await _cache.GetStringAsync(identifier);
 
         IPrinterIndexService indexService = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
+
+        var thumbnailService = scope.ServiceProvider.GetRequiredService<IPrinterThumbnailService>();
 
         if (cached != null)
         {
@@ -153,7 +165,7 @@
             try
             {
                 status = await Printer.GetStatusAsync();
-                var printerIndexed = await IndexService.GetPrinterByIdentifierAsync(status.Identifier);
+                var printerIndexed = await indexService.GetPrinterByIdentifierAsync(status.Identifier);
 
                 if (status.Status.ToLower() == "offline")
                 {
@@ -229,13 +241,6 @@
         }
 
         await base.OnAfterRenderAsync(firstRender);
-    }
-
-    protected override Task OnParametersSetAsync()
-    {
-
-
-        return base.OnParametersSetAsync();
     }
 
     public async Task OnPrinterStopAsync()

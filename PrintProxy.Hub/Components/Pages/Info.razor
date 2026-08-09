@@ -6,7 +6,10 @@
 
 <PageTitle>Info Screen</PageTitle>
 
-<h5>@DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")</h5>
+<h5 style="height:10px; vertical-align:central; margin:5px; margin-bottom:0px">
+    @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
+    <MudProgressCircular Color="Color.Primary" Size="Size.Small" Style="margin-left:10px" Indeterminate="isbusy" />
+</h5>
 
 <MudGrid Style="margin-top:2px;">
     @foreach (var printer in Printers)
