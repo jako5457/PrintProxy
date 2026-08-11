@@ -6,6 +6,7 @@ services:
       dockerfile: PrintProxy.Hub/Dockerfile
     ports:
       - '8181:8080'
+      - '8182:8081'
     depends_on:
       - db
     environment:
