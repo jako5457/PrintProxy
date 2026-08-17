@@ -68,7 +68,6 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -77,7 +76,7 @@ using (var scope = app.Services.CreateScope())
     await context.Database.EnsureCreatedAsync();
 }
 
-await app.SetupDefaultAdminUserAsync(); // Frist time setup
+await app.SetupDefaultAdminUserAsync(); // First time setup
 
 app.MapHealthChecks("/health");
 

@@ -100,9 +100,12 @@ namespace PrintProxy.Hub.Services
 
                     var information = await printerconn.GetStatusAsync();
 
-                    if (printer.PrinterName == information.PrinterName)
+                    if (printer.PrinterName != information.PrinterName)
                     {
-                        printer.PrinterName = information.PrinterName;
+                        if (string.IsNullOrWhiteSpace(printer.PrinterName))
+                        {
+                            printer.PrinterName = information.PrinterName;
+                        }
                     }
                 }
 
@@ -155,9 +158,12 @@ namespace PrintProxy.Hub.Services
 
                     var information = await printerconn.GetStatusAsync();
 
-                    if (printer.PrinterName == information.PrinterName)
+                    if (printer.PrinterName != information.PrinterName)
                     {
-                        printer.PrinterName = information.PrinterName;
+                        if (string.IsNullOrWhiteSpace(printer.PrinterName))
+                        {
+                           printer.PrinterName = information.PrinterName; 
+                        }
                     }
                 }
             }
@@ -210,9 +216,12 @@ namespace PrintProxy.Hub.Services
 
                     var information = await printerconn.GetStatusAsync();
 
-                    if (printer.PrinterName == information.PrinterName)
+                    if (printer.PrinterName != information.PrinterName)
                     {
-                        printer.PrinterName = information.PrinterName;
+                        if (string.IsNullOrWhiteSpace(printer.PrinterName))
+                        {
+                            printer.PrinterName = information.PrinterName;
+                        }
                     }
                 }
             }

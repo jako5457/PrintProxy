@@ -16,6 +16,7 @@
     {
         <MudChip T="string" Icon="@Icons.Material.Filled.Info" IconColor="Color.Warning" Label="true">Configuration have unsaved changes</MudChip>
     }
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Info" Class="mr-1" OnClick="UpdateIndex" Disabled="@(Indexing)">Update Index</MudButton>
     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="Save" Disabled="@(!HaveChanges)">Save</MudButton>
 </MudToolBar>
 
@@ -174,7 +175,8 @@
     MainConfigEntry Config = new MainConfigEntry();
 
     bool HaveChanges = false;
-
+    bool Indexing = false;
+    
     protected override async Task OnInitializedAsync()
     {
         Config = _configService.GetConfig();
@@ -196,9 +198,26 @@
         HaveChanges = false;
         await InvokeAsync(StateHasChanged);
 
-        _snackbar.Add("Updating Index", Severity.Info);
+        await UpdateIndex();
+    }
+
+    private async Task UpdateIndex()
+    {
+        Indexing = true;
+        await InvokeAsync(StateHasChanged);
+        var updateStatus = _snackbar.Add("Updating Index", Severity.Info, config =>
+        {
+            config.Icon = Icons.Material.Filled.Refresh;
+            config.CloseAfterNavigation = false;
+            config.ShowCloseIcon = false;
+            config.VisibleStateDuration = int.MaxValue;
+        });
         await _PrinterIndexer.BeginIndexingAsync();
+        
+        _snackbar.Remove(updateStatus);
         _snackbar.Add("Index Updated", Severity.Success);
+        Indexing = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     public async Task AddFlashforgePrinter()
