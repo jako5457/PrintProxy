@@ -27,6 +27,8 @@ builder.Services.AddStackExchangeRedisCache(a =>
     a.InstanceName = "PrintCache";
 });
 
+builder.AddSelfSignedSslCert();
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
