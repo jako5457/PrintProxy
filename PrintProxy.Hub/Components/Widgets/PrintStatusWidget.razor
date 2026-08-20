@@ -11,26 +11,26 @@
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
         <MudCardHeader>
-            <CardHeaderContent >
-                @if (authorized)
-                {
-                    <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6" Style="cursor:pointer">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
-                }
-                else
-                {
-                    <MudText Typo="Typo.h6">
-                        @status.PrinterName 
-                        <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip>
-                        @foreach (var tag in tags)
-                        {
-                            string style = $"background-color: {tag.GenerateHexColor()}";
-                            <MudChip T="string" Size="Size.Small" Style='@style'>@tag</MudChip>
-                        }
-                    </MudText>
-                }             
-                
-                
-
+            <CardHeaderContent>
+                <AuthorizeView>
+                    <Authorized>
+                        <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6" Style="cursor:pointer">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                    </Authorized>
+                    <NotAuthorized>
+                        <MudText Typo="Typo.h6">
+                            @status.PrinterName
+                            <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip>
+                            @if (ShowTags)
+                            {
+                                foreach (var tag in tags)
+                                {
+                                    string style = $"background-color: {tag.GenerateHexColor()}";
+                                    <MudChip T="string" Size="Size.Small" Style='@style'>@tag</MudChip>
+                                }
+                            }
+                        </MudText>
+                    </NotAuthorized>
+                </AuthorizeView>
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
@@ -70,7 +70,7 @@
                 
                 @if (!IsKiosk)
                 {
-                    <AuthorizeView>
+                    <AuthorizeView Roles="admin">
                         <Authorized>
                             <MudButtonGroup Class="mt-2" OverrideStyles="false" >
                                 <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
@@ -108,6 +108,9 @@
 
     [Parameter]
     public bool DisableControls { get; set; } = false;
+    
+    [Parameter]
+    public bool ShowTags { get; set; } = false;
 
     [Parameter]
     public IPrinter Printer { get; set; } = null!;

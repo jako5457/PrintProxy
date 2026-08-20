@@ -1,5 +1,5 @@
 ﻿@page "/config"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "admin")]
 @using PrintProxy.Hub.Components.Dialogs.Configuration;
 @using PrintLib.FlashForge;
 @using PrintLib.OctoPrint;
@@ -171,7 +171,7 @@
             </MudTable>
         </ChildContent>
     </MudExpansionPanel>
-
+    
 </MudExpansionPanels>
 
 @code {
@@ -336,6 +336,7 @@
             _snackbar.Add("Config upload completed", Severity.Success);
             Config = _configService.GetConfig();
             await InvokeAsync(StateHasChanged);
+            await UpdateIndex();
         }
     }
 }

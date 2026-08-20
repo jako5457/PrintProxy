@@ -12,13 +12,7 @@ public static class SecurityExtensions
     {
         string certLocation = "SelfSignedCert.pfx";
         
-        X509Certificate2 cert = null!;
-        
-        if (File.Exists(certLocation))
-        { 
-            cert = X509CertificateLoader.LoadCertificate(File.ReadAllBytes(certLocation));
-        }
-        else
+        if (!File.Exists(certLocation))
         {
             #region Create Self Signed Certificate
 
@@ -52,7 +46,7 @@ public static class SecurityExtensions
 
             req.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(req.PublicKey, false));
             
-            cert = req.Create(parentCert, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(10),
+            X509Certificate2 cert = req.Create(parentCert, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(10),
                 new byte[] { 1, 2, 3, 4 });
             
             cert = cert.CopyWithPrivateKey(rsa);
@@ -62,14 +56,14 @@ public static class SecurityExtensions
             File.WriteAllBytes(certLocation, pfxData);
 
             #endregion
-
-            builder.WebHost.ConfigureKestrel(serverOptions =>
-            {
-                serverOptions.ListenAnyIP(8080);
-                serverOptions.ListenAnyIP(8081, listenOptions => listenOptions.UseHttps(certLocation));
-            });
         }
 
+        builder.WebHost.ConfigureKestrel(serverOptions =>
+        {
+            serverOptions.ListenAnyIP(8080);
+            serverOptions.ListenAnyIP(8081, listenOptions => listenOptions.UseHttps(certLocation));
+        });
+        
         return builder;
     }
 }
