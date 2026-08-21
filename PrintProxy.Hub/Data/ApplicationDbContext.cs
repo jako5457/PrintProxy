@@ -14,5 +14,6 @@ namespace PrintProxy.Hub.Data
 
         public DbSet<PrinterFile> Files { get; set; }
 
+        public DbSet<Reservation> Reservations { get; set; }
     }
 }
