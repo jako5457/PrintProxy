@@ -15,5 +15,15 @@ namespace PrintProxy.Hub.Data
         public DbSet<PrinterFile> Files { get; set; }
 
         public DbSet<Reservation> Reservations { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<ApplicationUser>()
+                        .HasMany(u => u.Reservations)
+                        .WithOne(r => r.User)
+                        .HasForeignKey(r => r.UserId);
+            
+            base.OnModelCreating(builder);
+        }
     }
 }

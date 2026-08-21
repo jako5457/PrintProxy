@@ -1,8 +1,12 @@
-﻿namespace PrintProxy.Hub.Data.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PrintProxy.Hub.Data.Entities;
 
 public class Reservation
 {
     public int ReservationId { get; set; }
+    
+    public string UserId { get; set; } = string.Empty;
     
     public required DateTime StartDate { get; set; }
     

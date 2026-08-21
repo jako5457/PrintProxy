@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PrintProxy.Hub.Data;
+using PrintProxy.Hub.Data.Entities;
 using PrintProxy.Hub.Services.Dto;
+using PrintProxy.Hub.Services.reservation;
 
 namespace PrintProxy.Hub.Services;
 
-public class ReservationService
+public class ReservationService : IReservationService
 {
-    
     private readonly ILogger<ReservationService> _logger;
 
     private readonly IServiceProvider _serviceProvider;
@@ -79,5 +80,83 @@ public class ReservationService
             })
             .ToListAsync();
     }
-    
+
+    public async Task CreateReservationAsync(EditReservationDto reservation)
+    {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        Reservation newRes = new Reservation()
+        {
+            UserId = reservation.UserId,
+            ReservationId = reservation.ReservationId,
+            StartDate = reservation.StartDate,
+            EndDate = reservation.EndDate,
+            Title = reservation.Title,
+            Description = reservation.Description,
+        };
+        
+        context.Reservations.Add(newRes);
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message,e);
+            throw;
+        }
+    }
+
+    public async Task EditReservationAsync(EditReservationDto reservation, int reservationId)
+    {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var existingReservation = await context.Reservations
+                                                .Where(r => r.ReservationId == reservationId)
+                                                .FirstOrDefaultAsync();
+        
+        if (existingReservation != null)
+        {
+            existingReservation.Title = reservation.Title;
+            existingReservation.Description = reservation.Description;
+            existingReservation.StartDate = reservation.StartDate;
+            existingReservation.EndDate = reservation.EndDate;
+        }
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e);
+            throw;
+        }
+    }
+
+    public async Task DeleteReservationAsync(int reservationId)
+    {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+        
+        var reservation = await context.Reservations.Where(r => r.ReservationId == reservationId).FirstOrDefaultAsync();
+
+        if (reservation != null)
+        {
+            context.Reservations.Remove(reservation);
+        }
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e);
+            throw;
+        }
+    }
 }
