@@ -1,0 +1,13 @@
+﻿@page "/reservations/admin"
+@using PrintProxy.Hub.Services.reservation
+
+@attribute [Authorize(Roles = "admin")]
+@inject IReservationService ReservationService
+
+<h3>ReseravationAdmin</h3>
+
+@code {
+    
+    
+    
+}

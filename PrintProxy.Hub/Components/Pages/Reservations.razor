@@ -1,0 +1,73 @@
+﻿@page "/reservations"
+@using Microsoft.AspNetCore.Identity
+@using PrintProxy.Hub.Components.Dialogs.Reservation
+@using PrintProxy.Hub.Data
+@using PrintProxy.Hub.Services.Dto
+@using PrintProxy.Hub.Services.reservation
+
+@inject IDialogService Diag;
+@inject IReservationService ReservationService
+@inject AuthenticationStateProvider AuthProvider
+@inject UserManager<ApplicationUser> UserManager
+
+@attribute [Authorize]
+
+<h1>Your Reservations</h1>
+
+<MudTable T="ReservationInfoDto" Items="reservations">
+    <ToolBarContent>
+        <MudButton OnClick="CreateReservation" Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" >Create reservation</MudButton>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Printer</MudTh>
+        <MudTh>Start</MudTh>
+        <MudTh>End</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.PrinterName</MudTd>
+        <MudTd>@context.StartDate.ToString("dd/MM/yy HH:mm")</MudTd>
+        <MudTd>@context.EndDate.ToString("dd/MM/yy HH:mm")</MudTd>
+        <MudTd>
+            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" />
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>You have no reservations</MudText>
+        <MudButton OnClick="CreateReservation" Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" >Create a new reservation</MudButton>
+    </NoRecordsContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    public List<ReservationInfoDto> reservations = new List<ReservationInfoDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Update();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task Update()
+    {
+        var AuthState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.FindByNameAsync(AuthState.User.Identity?.Name);
+
+        reservations = await ReservationService.GetReservationsByUserAsync(user.Id);
+    }
+    
+    public async Task CreateReservation()
+    {
+        var options = new DialogOptions() { CloseButton = false,BackdropClick = false };
+        var dialog = await Diag.ShowAsync<UserReservationDialog>(options);
+
+        var result = await dialog.Result;
+
+        if (!result?.Canceled ?? false)
+        {
+            await Update();
+        }
+    }
+}

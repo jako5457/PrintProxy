@@ -23,6 +23,11 @@ namespace PrintProxy.Hub.Data
                         .WithOne(r => r.User)
                         .HasForeignKey(r => r.UserId);
             
+            builder.Entity<Printer>()
+                        .HasMany(p => p.Reservations)
+                        .WithOne(r => r.Printer)
+                        .HasForeignKey(r => r.PrinterId);
+            
             base.OnModelCreating(builder);
         }
     }

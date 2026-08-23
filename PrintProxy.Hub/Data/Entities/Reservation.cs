@@ -8,13 +8,15 @@ public class Reservation
     
     public string UserId { get; set; } = string.Empty;
     
+    public int PrinterId { get; set; }
+    
     public required DateTime StartDate { get; set; }
     
     public required DateTime EndDate { get; set; }
     
     public required string Title { get; set; } = string.Empty;
     
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; } = string.Empty;
     
     public ApplicationUser User { get; set; } = null!;
 

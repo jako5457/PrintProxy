@@ -16,5 +16,10 @@ namespace PrintProxy.Hub.Models
 
         [JsonIgnore]
         public IPrinter PrinterConn { get; set; } = null!;
+
+        public override string ToString()
+        {
+            return PrinterName;
+        }
     }
 }

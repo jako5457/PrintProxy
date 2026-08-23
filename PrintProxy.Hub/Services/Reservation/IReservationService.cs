@@ -12,7 +12,11 @@ public interface IReservationService
 
     public Task CreateReservationAsync(EditReservationDto reservation);
 
+    public Task CreateReservationsAsync(List<EditReservationDto> reservations);
+    
     public Task EditReservationAsync(EditReservationDto reservation, int reservationId);
 
     public Task DeleteReservationAsync(int reservationId);
+
+    public Task<bool> ValidateValidReservationAsync(int printerId,DateTime start, DateTime end);
 }

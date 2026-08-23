@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Data.Entities;
 using PrintProxy.Hub.Services.Dto;
@@ -31,11 +32,12 @@ public class ReservationService : IReservationService
                             .Select(r => new ReservationInfoDto()
                             {
                                 ReservationId = r.ReservationId,
-                                StartDate = r.StartDate,
-                                EndDate = r.EndDate,
+                                StartDate = r.StartDate.ToLocalTime(),
+                                EndDate = r.EndDate.ToLocalTime(),
                                 Title =  r.Title,
                                 Description =  r.Description,
                                 UserName = r.User.UserName ?? "none",
+                                PrinterName = r.Printer.PrinterName
                             })
                             .FirstOrDefaultAsync();
        
@@ -52,11 +54,12 @@ public class ReservationService : IReservationService
             .Select(r => new ReservationInfoDto()
             {
                 ReservationId = r.ReservationId,
-                StartDate = r.StartDate,
-                EndDate = r.EndDate,
+                StartDate = r.StartDate.ToLocalTime(),
+                EndDate = r.EndDate.ToLocalTime(),
                 Title =  r.Title,
                 Description =  r.Description,
                 UserName = r.User.UserName ?? "none",
+                PrinterName = r.Printer.PrinterName
             })
             .ToListAsync();
     }
@@ -72,11 +75,12 @@ public class ReservationService : IReservationService
             .Select(r => new ReservationInfoDto()
             {
                 ReservationId = r.ReservationId,
-                StartDate = r.StartDate,
-                EndDate = r.EndDate,
+                StartDate = r.StartDate.ToLocalTime(),
+                EndDate = r.EndDate.ToLocalTime(),
                 Title =  r.Title,
                 Description =  r.Description,
                 UserName = r.User.UserName ?? "none",
+                PrinterName = r.Printer.PrinterName
             })
             .ToListAsync();
     }
@@ -90,13 +94,41 @@ public class ReservationService : IReservationService
         {
             UserId = reservation.UserId,
             ReservationId = reservation.ReservationId,
-            StartDate = reservation.StartDate,
-            EndDate = reservation.EndDate,
+            StartDate = reservation.StartDate.ToUniversalTime(),
+            EndDate = reservation.EndDate.ToUniversalTime(),
             Title = reservation.Title,
             Description = reservation.Description,
         };
         
         context.Reservations.Add(newRes);
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message,e);
+            throw;
+        }
+    }
+
+    public async Task CreateReservationsAsync(List<EditReservationDto> reservations)
+    {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        List<Reservation> NewReservations = reservations.Select(r => new Reservation()
+        {
+            UserId = r.UserId,
+            PrinterId = r.PrinterId,
+            StartDate = r.StartDate.ToUniversalTime(),
+            EndDate = r.EndDate.ToUniversalTime(),
+            Title = r.Title,
+            Description = r.Description,
+        }).ToList();
+        
+        context.Reservations.AddRange(NewReservations);
 
         try
         {
@@ -122,8 +154,8 @@ public class ReservationService : IReservationService
         {
             existingReservation.Title = reservation.Title;
             existingReservation.Description = reservation.Description;
-            existingReservation.StartDate = reservation.StartDate;
-            existingReservation.EndDate = reservation.EndDate;
+            existingReservation.StartDate = reservation.StartDate.ToUniversalTime();
+            existingReservation.EndDate = reservation.EndDate.ToUniversalTime();
         }
 
         try
@@ -158,5 +190,16 @@ public class ReservationService : IReservationService
             _logger.LogError(e.Message, e);
             throw;
         }
+    }
+
+    public async Task<bool> ValidateValidReservationAsync(int printerId,DateTime start, DateTime end)
+    {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        return !await context.Reservations
+            .Where(r => r.PrinterId == printerId)
+            .Where(r => start.ToUniversalTime() <= r.StartDate.ToUniversalTime())
+            .Where(r => end.ToUniversalTime() >= r.EndDate.ToUniversalTime()).AnyAsync();
     }
 }

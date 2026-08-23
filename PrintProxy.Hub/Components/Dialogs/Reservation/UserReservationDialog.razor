@@ -1,0 +1,159 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using PrintProxy.Hub.Data
+@using PrintProxy.Hub.Services.Dto
+@using PrintProxy.Hub.Services.reservation
+@inject IReservationService ReservationService
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthProvider
+@inject IPrinterIndexService IndexService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>Create Reservation</TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" Errors="errors">
+            @if (errors.Any())
+            {
+                <MudText Typo="Typo.subtitle2">@($"Errors ({errors.Length})")</MudText>
+                @foreach (var error in errors)
+                {
+                    <MudText Color="@Color.Error">@error</MudText>
+                }
+            }
+
+            <MudSelect T="PrinterModel" MultiSelection="true" SelectAll="true" SelectAllText="All Printers" SelectedValues="Model.SelectedPrinters">
+                @foreach (var printer in Printers)
+                {
+                    <MudSelectItem T="PrinterModel" Value="printer">@printer.PrinterName</MudSelectItem>
+                }
+            </MudSelect>
+            <MudGrid>
+                <MudItem md="6">
+                    <MudDatePicker Label="Start date" @bind-Date="Model.StartDate"/>
+                </MudItem>
+                <MudItem md="6">
+                    <MudDatePicker Label="End date" @bind-Date="Model.EndDate"/>
+                </MudItem>
+            </MudGrid>
+            <MudGrid>
+                <MudItem md="6">
+                    <MudTimePicker Label="Start time" @bind-Time="Model.StartTime"/>
+                </MudItem>
+                <MudItem md="6">
+                    <MudTimePicker Label="End time" @bind-Time="Model.EndTime"/>
+                </MudItem>
+            </MudGrid>
+            <MudTextField Label="Title" Required="true" RequiredError="Title needs to be filled" @bind-Value="Model.Title"/>
+            <MudTextField Label="Description (Optional)" Required="false" @bind-Value="Model.Description"/>
+            <MudGrid>
+                <MudItem>
+
+                </MudItem>
+                <MudItem>
+
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" @onclick="SubmitAsync" >Create</MudButton>
+        <MudButton Color="Color.Secondary" @onclick="() => MudDialog.Cancel()">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+    
+    string[] errors = [];
+    List<string> NewErrors = new();
+    private MudForm _form;
+    
+    ReservationModel Model { get; set; } = new ReservationModel();
+    List<PrinterModel> Printers = new List<PrinterModel>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Printers = await IndexService.GetPrintersAsync();
+        
+        await base.OnInitializedAsync();
+    }
+    
+    public async Task SubmitAsync()
+    {
+        if (errors.Length == NewErrors.Count())
+        {
+            NewErrors.Clear();
+            errors = NewErrors.ToArray();
+        }
+        
+        if (errors.Any())
+        {
+            return;
+        }
+        
+        DateTime startDate = Model.StartDate.GetValueOrDefault().Add(Model.StartTime.GetValueOrDefault());
+        DateTime endDate = Model.EndDate.GetValueOrDefault().Add(Model.EndTime.GetValueOrDefault());
+
+        foreach (var printer in Printers)
+        {
+            bool Isvalid = await ReservationService.ValidateValidReservationAsync(printer.PrinterId,startDate, endDate);
+
+            if (!Isvalid)
+            {
+                NewErrors.Add($"{ printer.PrinterName } - There is a reservation overlap with another reservation");
+            }
+        }
+        
+        bool valid = !NewErrors.Any();
+        
+        if (valid)
+        {
+            var AuthState = await AuthProvider.GetAuthenticationStateAsync();
+            var user = await UserManager.FindByNameAsync(AuthState.User.Identity?.Name);
+            
+            List<EditReservationDto> NewReservations = new();
+
+            foreach (var printer in Printers)
+            {
+                var reservation = new EditReservationDto()
+                {
+                    UserId = user.Id,
+                    PrinterId = printer.PrinterId,
+                    Title = Model.Title,
+                    Description = Model.Description,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                };
+                NewReservations.Add(reservation);
+            }
+            
+            await ReservationService.CreateReservationsAsync(NewReservations);
+            Snackbar.Add("Reservations Created", Severity.Success);
+            MudDialog.Close();
+        }
+        
+        if (NewErrors.Any())
+        {
+            errors = NewErrors.ToArray();
+        }
+    }
+    
+    private class ReservationModel
+    {
+        public List<PrinterModel> SelectedPrinters { get; set; } = new();
+        
+        public string Title { get; set; }
+        
+        public string Description { get; set; }
+        
+        public DateTime? StartDate { get; set; }    
+        
+        public DateTime? EndDate { get; set; }
+        
+        public TimeSpan? StartTime { get; set; }
+        
+        public TimeSpan? EndTime { get; set; }
+    }
+}

@@ -4,11 +4,19 @@
 
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.LocalPrintshop">Printers</MudNavLink>
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="reservations" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.PermContactCalendar">Your Reservations</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
     <AuthorizeView Roles="admin">
         <Authorized>
-            <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
-            <MudNavLink Href="config" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FileCode">Configuration</MudNavLink>
-            <MudNavLink Href="users" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+            <MudNavGroup Title="Admin"  Icon="@Icons.Material.Filled.MonitorHeart" Expanded="true">
+                <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
+                <MudNavLink Href="config" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FileCode">Configuration</MudNavLink>
+                <MudNavLink Href="users" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+                <MudNavLink Href="reservations/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CalendarMonth">Reservations</MudNavLink>
+            </MudNavGroup>
         </Authorized>
     </AuthorizeView>
     <AuthorizeView>
