@@ -6,6 +6,7 @@
 @using PrintProxy.Hub.Services.reservation
 
 @inject IDialogService Diag;
+@inject ISnackbar Snackbar
 @inject IReservationService ReservationService
 @inject AuthenticationStateProvider AuthProvider
 @inject UserManager<ApplicationUser> UserManager
@@ -20,16 +21,18 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh>Printer</MudTh>
+        <MudTh>Title</MudTh>
         <MudTh>Start</MudTh>
         <MudTh>End</MudTh>
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd>@context.PrinterName</MudTd>
+        <MudTd>@context.Title</MudTd>
         <MudTd>@context.StartDate.ToString("dd/MM/yy HH:mm")</MudTd>
         <MudTd>@context.EndDate.ToString("dd/MM/yy HH:mm")</MudTd>
         <MudTd>
-            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" />
+            <MudIconButton OnClick="() => RemoveReservationAsync(context)" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" />
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>
@@ -56,6 +59,7 @@
         var user = await UserManager.FindByNameAsync(AuthState.User.Identity?.Name);
 
         reservations = await ReservationService.GetReservationsByUserAsync(user.Id);
+        await InvokeAsync(StateHasChanged);
     }
     
     public async Task CreateReservation()
@@ -70,4 +74,12 @@
             await Update();
         }
     }
+    
+    public async Task RemoveReservationAsync(ReservationInfoDto reservation)
+    {
+        await ReservationService.DeleteReservationAsync(reservation.ReservationId);
+        Snackbar.Add("Reservation removed", Severity.Success);
+        await Update();
+    }
+
 }
