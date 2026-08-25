@@ -13,6 +13,8 @@ public class ReservationInfoDto
     
     public string PrinterName { get; set; }
     
+    public int PrinterId { get; set; }
+    
     public string Title { get; set; }
     
     public string Description { get; set; }

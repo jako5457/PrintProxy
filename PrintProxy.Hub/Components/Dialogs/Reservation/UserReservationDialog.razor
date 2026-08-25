@@ -9,7 +9,16 @@
 @inject ISnackbar Snackbar
 
 <MudDialog>
-    <TitleContent>Create Reservation</TitleContent>
+    <TitleContent>
+        @if (EditMode)
+        {
+            @:Edit Reservation
+        }
+        else
+        {
+            @:Create Reservation
+        }
+    </TitleContent>
     <DialogContent>
         <MudForm @ref="_form" Errors="errors">
             @if (errors.Any())
@@ -21,7 +30,7 @@
                 }
             }
 
-            <MudSelect T="PrinterModel" MultiSelection="true" SelectAll="true" SelectAllText="All Printers" SelectedValues="Model.SelectedPrinters">
+            <MudSelect T="PrinterModel" Disabled="EditMode" MultiSelection="true" SelectAll="true" SelectAllText="All Printers" SelectedValues="Model.SelectedPrinters">
                 @foreach (var printer in Printers)
                 {
                     <MudSelectItem T="PrinterModel" Value="printer">@printer.PrinterName</MudSelectItem>
@@ -56,7 +65,17 @@
         </MudForm>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" @onclick="SubmitAsync" >Create</MudButton>
+        <MudButton Color="Color.Primary" @onclick="SubmitAsync">
+            @if (EditMode)
+            {
+                @:Save
+            }
+            else
+            {
+                @:Create
+            }
+            
+        </MudButton>
         <MudButton Color="Color.Secondary" @onclick="() => MudDialog.Cancel()">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
@@ -65,17 +84,45 @@
     
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter] 
+    public ReservationInfoDto? Reservation { get; set; } = null!;
+
+    [Parameter] 
+    public bool EditMode { get; set; } = false;
     
     string[] errors = [];
     List<string> NewErrors = new();
     private MudForm _form;
     
     ReservationModel Model { get; set; } = new ReservationModel();
+    
     List<PrinterModel> Printers = new List<PrinterModel>();
     
     protected override async Task OnInitializedAsync()
     {
         Printers = await IndexService.GetPrintersAsync();
+        
+        if (EditMode)
+        {
+            
+            Model = new ReservationModel()
+            {
+                SelectedPrinters = Printers
+                    .Where(p => p.PrinterId == (Reservation?.PrinterId ?? -1) )
+                    .Select(p => new PrinterModel()
+                    {
+                        PrinterId = p.PrinterId,
+                        PrinterName = p.PrinterName,
+                    }).ToList(),
+                Title = Reservation.Title,
+                Description = Reservation.Description,
+                StartDate = Reservation.StartDate,
+                EndDate = Reservation.EndDate,
+                StartTime = Reservation.StartDate.TimeOfDay,
+                EndTime = Reservation.EndDate.TimeOfDay
+            };
+        }
         
         await base.OnInitializedAsync();
     }
@@ -93,13 +140,21 @@
             return;
         }
         
-        DateTime startDate = Model.StartDate.GetValueOrDefault().Add(Model.StartTime.GetValueOrDefault());
-        DateTime endDate = Model.EndDate.GetValueOrDefault().Add(Model.EndTime.GetValueOrDefault());
+        DateTime startDate = Model.StartDate.GetValueOrDefault().Date.Add(Model.StartTime.GetValueOrDefault());
+        DateTime endDate = Model.EndDate.GetValueOrDefault().Date.Add(Model.EndTime.GetValueOrDefault());
 
         foreach (var printer in Printers)
         {
-            bool Isvalid = await ReservationService.ValidateValidReservationAsync(printer.PrinterId,startDate, endDate);
-
+            bool Isvalid = false;
+            if (EditMode)
+            {
+                Isvalid = await ReservationService.ValidateValidReservationWithReservationAsync(Reservation,startDate,endDate);
+            }
+            else
+            {
+                Isvalid = await ReservationService.ValidateValidReservationAsync(printer.PrinterId,startDate, endDate);
+            }
+            
             if (!Isvalid)
             {
                 NewErrors.Add($"{ printer.PrinterName } - There is a reservation overlap with another reservation");
@@ -108,29 +163,47 @@
         
         bool valid = !NewErrors.Any();
         
+        List<EditReservationDto> NewReservations = new();
+        
         if (valid)
         {
-            var AuthState = await AuthProvider.GetAuthenticationStateAsync();
-            var user = await UserManager.FindByNameAsync(AuthState.User.Identity?.Name);
-            
-            List<EditReservationDto> NewReservations = new();
-
-            foreach (var printer in Printers)
+            if (EditMode)
             {
                 var reservation = new EditReservationDto()
                 {
-                    UserId = user.Id,
-                    PrinterId = printer.PrinterId,
                     Title = Model.Title,
                     Description = Model.Description,
                     StartDate = startDate,
                     EndDate = endDate,
                 };
-                NewReservations.Add(reservation);
+                
+                await ReservationService.EditReservationAsync(reservation,Reservation.ReservationId);
+                Snackbar.Add("Reservation changed", Severity.Success);
+            }
+            else
+            {
+                var AuthState = await AuthProvider.GetAuthenticationStateAsync();
+                var user = await UserManager.FindByNameAsync(AuthState.User.Identity?.Name);
+                
+                foreach (var printer in Printers)
+                {
+                    var reservation = new EditReservationDto()
+                    {
+                        UserId = user.Id,
+                        PrinterId = printer.PrinterId,
+                        Title = Model.Title,
+                        Description = Model.Description,
+                        StartDate = startDate,
+                        EndDate = endDate,
+                    };
+                    NewReservations.Add(reservation);
+                }
+                
+                await ReservationService.CreateReservationsAsync(NewReservations);
+                Snackbar.Add("Reservations Created", Severity.Success);
             }
             
-            await ReservationService.CreateReservationsAsync(NewReservations);
-            Snackbar.Add("Reservations Created", Severity.Success);
+            
             MudDialog.Close();
         }
         

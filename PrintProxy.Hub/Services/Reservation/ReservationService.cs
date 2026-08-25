@@ -35,6 +35,7 @@ public class ReservationService : IReservationService
                                 StartDate = r.StartDate.ToLocalTime(),
                                 EndDate = r.EndDate.ToLocalTime(),
                                 Title =  r.Title,
+                                PrinterId = r.Printer.PrinterId,
                                 Description =  r.Description,
                                 UserName = r.User.UserName ?? "none",
                                 PrinterName = r.Printer.PrinterName
@@ -57,6 +58,7 @@ public class ReservationService : IReservationService
                 StartDate = r.StartDate.ToLocalTime(),
                 EndDate = r.EndDate.ToLocalTime(),
                 Title =  r.Title,
+                PrinterId = r.Printer.PrinterId,
                 Description =  r.Description,
                 UserName = r.User.UserName ?? "none",
                 PrinterName = r.Printer.PrinterName
@@ -78,6 +80,7 @@ public class ReservationService : IReservationService
                 StartDate = r.StartDate.ToLocalTime(),
                 EndDate = r.EndDate.ToLocalTime(),
                 Title =  r.Title,
+                PrinterId = r.Printer.PrinterId,
                 Description =  r.Description,
                 UserName = r.User.UserName ?? "none",
                 PrinterName = r.Printer.PrinterName
@@ -199,6 +202,18 @@ public class ReservationService : IReservationService
 
         return !await context.Reservations
             .Where(r => r.PrinterId == printerId)
+            .Where(r => start.ToUniversalTime() <= r.StartDate.ToUniversalTime())
+            .Where(r => end.ToUniversalTime() >= r.EndDate.ToUniversalTime()).AnyAsync();
+    }
+    
+    public async Task<bool> ValidateValidReservationWithReservationAsync(ReservationInfoDto reservation,DateTime start, DateTime end)
+    {
+        await using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        return !await context.Reservations
+            .Where(r => r.PrinterId == reservation.PrinterId)
+            .Where(r => r.ReservationId != reservation.ReservationId)
             .Where(r => start.ToUniversalTime() <= r.StartDate.ToUniversalTime())
             .Where(r => end.ToUniversalTime() >= r.EndDate.ToUniversalTime()).AnyAsync();
     }

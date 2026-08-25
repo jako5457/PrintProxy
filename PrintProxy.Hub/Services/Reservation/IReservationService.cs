@@ -19,4 +19,6 @@ public interface IReservationService
     public Task DeleteReservationAsync(int reservationId);
 
     public Task<bool> ValidateValidReservationAsync(int printerId,DateTime start, DateTime end);
+
+    public Task<bool> ValidateValidReservationWithReservationAsync(ReservationInfoDto reservation, DateTime start, DateTime end);
 }

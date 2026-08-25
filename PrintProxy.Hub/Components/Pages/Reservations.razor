@@ -32,7 +32,8 @@
         <MudTd>@context.StartDate.ToString("dd/MM/yy HH:mm")</MudTd>
         <MudTd>@context.EndDate.ToString("dd/MM/yy HH:mm")</MudTd>
         <MudTd>
-            <MudIconButton OnClick="() => RemoveReservationAsync(context)" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" />
+            <MudIconButton OnClick="() => EditReservation(context)" Color="Color.Primary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" />
+            <MudIconButton OnClick="() => RemoveReservationAsync(context)" Color="Color.Secondary" Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0"/>
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>
@@ -66,6 +67,24 @@
     {
         var options = new DialogOptions() { CloseButton = false,BackdropClick = false };
         var dialog = await Diag.ShowAsync<UserReservationDialog>(options);
+
+        var result = await dialog.Result;
+
+        if (!result?.Canceled ?? false)
+        {
+            await Update();
+        }
+    }
+    
+    public async Task EditReservation(ReservationInfoDto reservation)
+    {
+        var parameters = new DialogParameters<UserReservationDialog>()
+        {
+            { param => param.EditMode,true },
+            { param => param.Reservation,reservation }
+        };
+        var options = new DialogOptions() { CloseButton = false,BackdropClick = false };
+        var dialog = await Diag.ShowAsync<UserReservationDialog>(parameters, options);
 
         var result = await dialog.Result;
 
