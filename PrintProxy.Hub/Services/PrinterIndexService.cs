@@ -8,7 +8,7 @@ using System.Net.NetworkInformation;
 
 namespace PrintProxy.Hub.Services
 {
-    public class PrinterIndexService(ApplicationDbContext context, IPrinterConfigurationService config, ILogger<PrinterIndexService> logger, IPrinterFactory printerFactory,ITagService tagService) : IPrinterIndexService
+    public class PrinterIndexService(IServiceProvider serviceProvider,ILogger<PrinterIndexService> logger) : IPrinterIndexService
     {
 
         private const string OctoPrintTagName = "OctoPrint";
@@ -17,6 +17,12 @@ namespace PrintProxy.Hub.Services
 
         public async Task BeginIndexingAsync()
         {
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterConfigurationService config = scope.ServiceProvider.GetRequiredService<IPrinterConfigurationService>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+            ITagService tagService = scope.ServiceProvider.GetRequiredService<ITagService>();
+            
             logger.LogInformation("Printer indexer starting");
 
             logger.LogInformation("Reading config.....");
@@ -239,6 +245,11 @@ namespace PrintProxy.Hub.Services
 
         public async Task<List<PrinterModel>> GetPrintersAsync()
         {
+            
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+            
             var printers = await context.Printers.Select(p => new PrinterModel()
             {
                PrinterId = p.PrinterId,
@@ -252,6 +263,10 @@ namespace PrintProxy.Hub.Services
 
         public async Task<PrinterModel?> GetPrinterByIdAsync(int id)
         {
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+
             return await context.Printers.Select(p => new PrinterModel()
             {
                 PrinterId = p.PrinterId,
@@ -265,6 +280,10 @@ namespace PrintProxy.Hub.Services
 
         public async Task<PrinterModel?> GetPrinterByIdentifierAsync(string identifier)
         {
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+            
             return await context.Printers.Select(p => new PrinterModel()
             {
                 PrinterId = p.PrinterId,

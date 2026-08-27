@@ -10,6 +10,8 @@ public interface IReservationService
 
     public Task<List<ReservationInfoDto>> GetReservationsByUserAsync(string userId);
 
+    public Task<List<ReservationInfoDto>> GetReservationsByDateAsync(DateTime date);
+    
     public Task CreateReservationAsync(EditReservationDto reservation);
 
     public Task CreateReservationsAsync(List<EditReservationDto> reservations);
@@ -17,6 +19,8 @@ public interface IReservationService
     public Task EditReservationAsync(EditReservationDto reservation, int reservationId);
 
     public Task DeleteReservationAsync(int reservationId);
+
+    public Task PurgeOldReservationsAsync();
 
     public Task<bool> ValidateValidReservationAsync(int printerId,DateTime start, DateTime end);
 

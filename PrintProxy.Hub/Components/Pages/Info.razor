@@ -10,19 +10,24 @@
     @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
     <MudProgressCircular Color="Color.Primary" Size="Size.Small" Style="margin-left:10px" Indeterminate="isbusy" />
 </h5>
+<CascadingValue Value="UpdateDelegator">
+    <MudGrid Style="margin-top:2px;">
+        @foreach (var printer in Printers)
+        {
+            <PrintStatusWidget Printer="printer" IsKiosk="true" />
+        }
+    </MudGrid>
+</CascadingValue>
 
-<MudGrid Style="margin-top:2px;">
-    @foreach (var printer in Printers)
-    {
-        <PrintStatusWidget Printer="printer" IsKiosk="true" />
-    }
-</MudGrid>
 
-    @code {
+@code {
 
-    bool isbusy = true;
+    public EventDelegator UpdateDelegator = new EventDelegator(); 
+    
+    bool isbusy = false;
     System.Timers.Timer timer = new(10000);
-
+    
+    
     public IEnumerable<IPrinter> Printers = new List<IPrinter>();
 
     protected override async Task OnInitializedAsync()
@@ -39,11 +44,19 @@
         await base.OnInitializedAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ReloadAsync();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
     public async Task ReloadAsync()
     {
-        isbusy = true;
-        await InvokeAsync(StateHasChanged);
-        isbusy = false;
+        await UpdateDelegator.SendEventAsync(this);
         await InvokeAsync(StateHasChanged);
     }
 

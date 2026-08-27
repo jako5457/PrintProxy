@@ -16,6 +16,11 @@ namespace PrintProxy.Hub.Data
 
         public DbSet<Reservation> Reservations { get; set; }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
+        
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<ApplicationUser>()

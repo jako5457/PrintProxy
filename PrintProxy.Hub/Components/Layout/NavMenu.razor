@@ -7,6 +7,7 @@
     <AuthorizeView>
         <Authorized>
             <MudNavLink Href="reservations" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.PermContactCalendar">Your Reservations</MudNavLink>
+            <MudNavLink Href="reservations/calendar" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CalendarToday">Reservation Calendar</MudNavLink>
         </Authorized>
     </AuthorizeView>
     <AuthorizeView Roles="admin">
@@ -15,7 +16,7 @@
                 <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
                 <MudNavLink Href="config" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FileCode">Configuration</MudNavLink>
                 <MudNavLink Href="users" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
-                <MudNavLink Href="reservations/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CalendarMonth">Reservations</MudNavLink>
+                <MudNavLink Href="reservations/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CalendarMonth">Reservation Options</MudNavLink>
             </MudNavGroup>
         </Authorized>
     </AuthorizeView>

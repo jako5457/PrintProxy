@@ -20,33 +20,43 @@ public class ReservationService : IReservationService
     }
 
     public async Task<ReservationInfoDto?> GetCurrentPrinterReservationAsync(int printerId)
-    {
-       await using var scope = _serviceProvider.CreateAsyncScope();
+    { 
+        using var scope = _serviceProvider.CreateAsyncScope();
 
-       ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
-
-       return await context.Reservations
-                            .Where(r => r.Printer.PrinterId == printerId)
-                            .Where(r => DateTime.Now > r.StartDate)
-                            .Where(r => DateTime.Now < r.EndDate)
-                            .Select(r => new ReservationInfoDto()
-                            {
-                                ReservationId = r.ReservationId,
-                                StartDate = r.StartDate.ToLocalTime(),
-                                EndDate = r.EndDate.ToLocalTime(),
-                                Title =  r.Title,
-                                PrinterId = r.Printer.PrinterId,
-                                Description =  r.Description,
-                                UserName = r.User.UserName ?? "none",
-                                PrinterName = r.Printer.PrinterName
-                            })
-                            .FirstOrDefaultAsync();
-       
+       try
+       {
+           ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+           await Task.Delay(Random.Shared.Next(100, 500));
+           
+           var utcNow = DateTime.UtcNow;
+           
+           return await context.Reservations
+               .Where(r => r.Printer.PrinterId == printerId)
+               .Where(r => r.StartDate <= utcNow)
+               .Where(r => r.EndDate >= utcNow)
+               .Select(r => new ReservationInfoDto()
+               {
+                   ReservationId = r.ReservationId,
+                   StartDate = TimeZoneInfo.ConvertTime(r.StartDate,TimeZoneInfo.Local),
+                   EndDate = TimeZoneInfo.ConvertTime(r.EndDate,TimeZoneInfo.Local),
+                   Title =  r.Title,
+                   PrinterId = r.Printer.PrinterId,
+                   Description =  r.Description,
+                   UserName = r.User.UserName ?? "none",
+                   PrinterName = r.Printer.PrinterName
+               })
+               .FirstOrDefaultAsync();
+       }
+       catch (Exception e)
+       {
+           Console.WriteLine(e);
+           return null;
+       }
     }
 
     public async Task<List<ReservationInfoDto>> GetReservationsByPrinterAsync(int printerId)
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.CreateAsyncScope();
 
         ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -55,8 +65,8 @@ public class ReservationService : IReservationService
             .Select(r => new ReservationInfoDto()
             {
                 ReservationId = r.ReservationId,
-                StartDate = r.StartDate.ToLocalTime(),
-                EndDate = r.EndDate.ToLocalTime(),
+                StartDate = TimeZoneInfo.ConvertTime(r.StartDate,TimeZoneInfo.Local),
+                EndDate = TimeZoneInfo.ConvertTime(r.EndDate,TimeZoneInfo.Local),
                 Title =  r.Title,
                 PrinterId = r.Printer.PrinterId,
                 Description =  r.Description,
@@ -68,7 +78,7 @@ public class ReservationService : IReservationService
 
     public async Task<List<ReservationInfoDto>> GetReservationsByUserAsync(string userId)
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.CreateAsyncScope();
 
         ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -77,8 +87,8 @@ public class ReservationService : IReservationService
             .Select(r => new ReservationInfoDto()
             {
                 ReservationId = r.ReservationId,
-                StartDate = r.StartDate.ToLocalTime(),
-                EndDate = r.EndDate.ToLocalTime(),
+                StartDate = TimeZoneInfo.ConvertTime(r.StartDate,TimeZoneInfo.Local),
+                EndDate = TimeZoneInfo.ConvertTime(r.EndDate,TimeZoneInfo.Local),
                 Title =  r.Title,
                 PrinterId = r.Printer.PrinterId,
                 Description =  r.Description,
@@ -87,18 +97,41 @@ public class ReservationService : IReservationService
             })
             .ToListAsync();
     }
+    
+    public async Task<List<ReservationInfoDto>> GetReservationsByDateAsync(DateTime date)
+    {
+        using var scope = _serviceProvider.CreateAsyncScope();
 
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+        
+        return await context.Reservations
+            .Where(r => r.StartDate <= TimeZoneInfo.ConvertTime(date,TimeZoneInfo.Utc) && TimeZoneInfo.ConvertTime(date,TimeZoneInfo.Utc) <= r.EndDate)
+            .OrderByDescending(r => r.StartDate)
+            .Select(r => new ReservationInfoDto()
+            {
+                ReservationId = r.ReservationId,
+                StartDate = TimeZoneInfo.ConvertTime(r.StartDate,TimeZoneInfo.Local),
+                EndDate = TimeZoneInfo.ConvertTime(r.EndDate,TimeZoneInfo.Local),
+                Title =  r.Title,
+                PrinterId = r.Printer.PrinterId,
+                Description =  r.Description,
+                UserName = r.User.UserName ?? "none",
+                PrinterName = r.Printer.PrinterName
+            })
+            .ToListAsync();
+    }
+    
     public async Task CreateReservationAsync(EditReservationDto reservation)
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.CreateAsyncScope();
         ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
 
         Reservation newRes = new Reservation()
         {
             UserId = reservation.UserId,
             ReservationId = reservation.ReservationId,
-            StartDate = reservation.StartDate.ToUniversalTime(),
-            EndDate = reservation.EndDate.ToUniversalTime(),
+            StartDate = TimeZoneInfo.ConvertTime(reservation.StartDate,TimeZoneInfo.Utc),
+            EndDate = TimeZoneInfo.ConvertTime(reservation.EndDate,TimeZoneInfo.Utc),
             Title = reservation.Title,
             Description = reservation.Description,
         };
@@ -118,15 +151,15 @@ public class ReservationService : IReservationService
 
     public async Task CreateReservationsAsync(List<EditReservationDto> reservations)
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.CreateAsyncScope();
         ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
 
         List<Reservation> NewReservations = reservations.Select(r => new Reservation()
         {
             UserId = r.UserId,
             PrinterId = r.PrinterId,
-            StartDate = r.StartDate.ToUniversalTime(),
-            EndDate = r.EndDate.ToUniversalTime(),
+            StartDate = TimeZoneInfo.ConvertTime(r.StartDate,TimeZoneInfo.Utc),
+            EndDate = TimeZoneInfo.ConvertTime(r.EndDate,TimeZoneInfo.Utc),
             Title = r.Title,
             Description = r.Description,
         }).ToList();
@@ -146,7 +179,7 @@ public class ReservationService : IReservationService
 
     public async Task EditReservationAsync(EditReservationDto reservation, int reservationId)
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.CreateAsyncScope();
         ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
 
         var existingReservation = await context.Reservations
@@ -157,7 +190,7 @@ public class ReservationService : IReservationService
         {
             existingReservation.Title = reservation.Title;
             existingReservation.Description = reservation.Description;
-            existingReservation.StartDate = reservation.StartDate.ToUniversalTime();
+            existingReservation.StartDate = TimeZoneInfo.ConvertTime(reservation.StartDate,TimeZoneInfo.Utc);
             existingReservation.EndDate = reservation.EndDate.ToUniversalTime();
         }
 
@@ -174,7 +207,7 @@ public class ReservationService : IReservationService
 
     public async Task DeleteReservationAsync(int reservationId)
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.CreateAsyncScope();
         ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
         
         var reservation = await context.Reservations.Where(r => r.ReservationId == reservationId).FirstOrDefaultAsync();
@@ -197,7 +230,7 @@ public class ReservationService : IReservationService
 
     public async Task<bool> ValidateValidReservationAsync(int printerId,DateTime start, DateTime end)
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.CreateAsyncScope();
         ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
 
         return !await context.Reservations
@@ -216,5 +249,25 @@ public class ReservationService : IReservationService
             .Where(r => r.ReservationId != reservation.ReservationId)
             .Where(r => start.ToUniversalTime() <= r.StartDate.ToUniversalTime())
             .Where(r => end.ToUniversalTime() >= r.EndDate.ToUniversalTime()).AnyAsync();
+    }
+
+    public async Task PurgeOldReservationsAsync()
+    {
+        using var scope = _serviceProvider.CreateAsyncScope();
+        ApplicationDbContext context = _serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var oldReservations = context.Reservations.Where(r => r.EndDate < DateTime.Now.ToUniversalTime()).ToList();
+        
+        context.Reservations.RemoveRange(oldReservations);
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message, e);
+            throw;
+        }
     }
 }

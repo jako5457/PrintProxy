@@ -3,6 +3,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
+      - TZ=Europe/Copenhagen
     ports:
       - "8080"
     volumes:
@@ -12,6 +13,10 @@ services:
   db:
     ports:
       - 5433:5432
+    environment:
+      - TZ=Europe/Copenhagen
   valkey:
     ports:
       - 6380:6379
+    environment:
+      - TZ=Europe/Copenhagen

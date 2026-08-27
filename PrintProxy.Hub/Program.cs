@@ -8,7 +8,6 @@ using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Services;
 using PrintProxy.Hub.Extensions;
 using PrintProxy.Hub.Services.Files;
-using System.Text;
 using PrintProxy.Hub.Services.reservation;
 using PrintProxy.Hub.Services.Tags;
 

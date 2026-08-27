@@ -1,5 +1,8 @@
 ﻿@using PrintProxy.Hub.Components.Account.Pages
+@using PrintProxy.Hub.Components.Pages
 @using PrintProxy.Hub.Extensions
+@using PrintProxy.Hub.Services.Dto
+@using PrintProxy.Hub.Services.reservation
 @using PrintProxy.Hub.Services.Tags
 @inject IDistributedCache _cache;
 @inject NavigationManager nav;
@@ -7,6 +10,12 @@
 @inject AuthenticationStateProvider auth;
 @inject IServiceProvider serviceProvider;
 @inject EmergencyManager _EmergencyManager
+@inject IReservationService ReservationService;
+@inject IPrinterIndexService indexService
+@inject ITagService tagService;
+@inject IPrinterThumbnailService thumbnailService
+
+@implements IDisposable
 
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
@@ -34,8 +43,15 @@
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
-
-            <div style="width:250px;overflow:hidden;height:17px;text-overflow:ellipsis">
+            @if (Reservation != null)
+            {
+                <MudAlert Icon="@Icons.Material.Filled.AccessTime" Severity="Severity.Warning">@Reservation.UserName - @Reservation.Title</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Success">Available</MudAlert>
+            }
+            <div class="mt-2" style="width:250px;overflow:hidden;height:17px;text-overflow:ellipsis">
                 @if (string.IsNullOrEmpty(status.FileName))
                 {
                     <MudText Typo="Typo.caption">No file</MudText>
@@ -44,7 +60,6 @@
                 {
                     <MudText Typo="Typo.caption">@status.FileName</MudText>
                 }
-                
             </div>
 
             @if (!string.IsNullOrEmpty(image))
@@ -54,7 +69,6 @@
             else
             {
                 <MudImage Src="./images/printproxy_logo.svg" Elevation="0" Style="background:white" Class="rounded-lg" Width="140" Height="110" />
-                
             }
 
             @if(IsBusy)
@@ -87,8 +101,13 @@
 
 @code {
 
+    [CascadingParameter]
+    public EventDelegator? OnUpdate { get; set; }
+    
     PrinterStatus status = new PrinterStatus();
 
+    ReservationInfoDto Reservation = null!;
+    
     List<string> tags = new List<string>();
 
     string image = string.Empty;
@@ -97,6 +116,8 @@
 
     bool updated = false;
 
+    bool IsReserved = false;
+    
     bool firstLoad = true;
 
     bool authorized = false;
@@ -117,43 +138,34 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var scope = serviceProvider.CreateAsyncScope();
-
-        var tagService = scope.ServiceProvider.GetRequiredService<ITagService>();
-
-        var authstate = await auth.GetAuthenticationStateAsync();
-        authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
-        tags = await tagService.GetPrinterTagsAsync(Printer.GetIdentifier());
-        await update();
+        if (OnUpdate != null)
+        {
+            OnUpdate.OnEvent += OnEvent;
+        }
         await base.OnInitializedAsync();
     }
 
-    public async Task update()
+    public async void OnEvent(object sender)
     {
-
-        if (IsBusy)
-        {
-            return;
-        }
-
-        if (updated)
-        {
-            return;
-        }
+        await InvokeAsync(Update);
+    }
+    
+    public async Task Update()
+    {
+        var authstate = await auth.GetAuthenticationStateAsync();
+        authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
+        tags = await tagService.GetPrinterTagsAsync(Printer.GetIdentifier());
         
-        using var scope = serviceProvider.CreateAsyncScope();
-
+        var prModel = await indexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
+        Reservation = await ReservationService.GetCurrentPrinterReservationAsync(prModel.PrinterId);
+        
         IsBusy = true;
         await InvokeAsync(StateHasChanged);
 
         string identifier = Printer.GetIdentifier();
-
+        
         var cached = await _cache.GetStringAsync(identifier);
-
-        IPrinterIndexService indexService = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
-
-        var thumbnailService = scope.ServiceProvider.GetRequiredService<IPrinterThumbnailService>();
-
+        
         if (cached != null)
         {
             if (firstLoad)
@@ -223,29 +235,6 @@
         }
     }
 
-    protected override bool ShouldRender()
-    {
-        return true;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!updated)
-        {
-            if (!IsBusy)
-            {
-                await update();
-                updated = true;
-            }
-        }
-        else
-        {
-            updated = false;
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
     public async Task OnPrinterStopAsync()
     {
         var parameters = new DialogParameters<DefaultDialog>
@@ -266,4 +255,13 @@
             await Printer.StopAsync();
         }
     }
+
+    public void Dispose()
+    {
+        if (OnUpdate != null)
+        {
+            OnUpdate.OnEvent -= OnEvent;
+        }
+    }
+
 }

@@ -21,7 +21,7 @@ namespace PrintProxy.Hub.Services.Tags
 
         public async Task CreateTagAsync(string TagName, bool SytemTag = false)
         {
-            using var scope = _ServiceProvider.CreateScope();
+            using var scope = _ServiceProvider.CreateAsyncScope();
 
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -48,7 +48,7 @@ namespace PrintProxy.Hub.Services.Tags
 
         public async Task<List<string>> GetPrinterTagsAsync(string Identifier)
         {
-            using var scope = _ServiceProvider.CreateScope();
+            using var scope = _ServiceProvider.CreateAsyncScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             var tags = await context.Printers.Where(p => p.PrinterIdentifier == Identifier).Select(p => p.Tags).FirstOrDefaultAsync();
