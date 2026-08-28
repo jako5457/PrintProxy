@@ -1,40 +1,67 @@
 ﻿@using PrintProxy.Hub.Components.Account.Pages
+@using PrintProxy.Hub.Components.Pages
+@using PrintProxy.Hub.Extensions
+@using PrintProxy.Hub.Services.Dto
+@using PrintProxy.Hub.Services.reservation
+@using PrintProxy.Hub.Services.Tags
 @inject IDistributedCache _cache;
-@inject IPrinterThumbnailService thumbnailService;
 @inject NavigationManager nav;
 @inject IDialogService Diag;
 @inject AuthenticationStateProvider auth;
 @inject IServiceProvider serviceProvider;
 @inject EmergencyManager _EmergencyManager
+@inject IReservationService ReservationService;
+@inject IPrinterIndexService indexService
+@inject ITagService tagService;
+@inject IPrinterThumbnailService thumbnailService
+
+@implements IDisposable
 
 <MudItem sm="12" xs="12" md="3">
     <MudCard>
         <MudCardHeader>
-            <CardHeaderContent >
-                @if (authorized)
-                {
-                    <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6" Style="cursor:pointer">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
-                }
-                else
-                {
-                    <MudText Typo="Typo.h6">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
-                }
-
-                <div style="width:250px;overflow:hidden;height:15px;text-overflow:ellipsis">
-                    @if (string.IsNullOrEmpty(status.FileName))
-                    {
-                        <MudText Typo="Typo.caption" >No file</MudText>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.caption">@status.FileName</MudText>
-                    }
-                </div>
-               
-
+            <CardHeaderContent>
+                <AuthorizeView>
+                    <Authorized>
+                        <MudText @onclick='() => nav.NavigateTo($"/details/{Uri.EscapeDataString(Printer.GetIdentifier())}")' Typo="Typo.h6" Style="cursor:pointer">@status.PrinterName <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip></MudText>
+                    </Authorized>
+                    <NotAuthorized>
+                        <MudText Typo="Typo.h6">
+                            @status.PrinterName
+                            <MudChip T="string" Size="Size.Small" Color="@status.Status.GetStatusColor()">@status.Status</MudChip>
+                            @if (ShowTags)
+                            {
+                                foreach (var tag in tags)
+                                {
+                                    string style = $"background-color: {tag.GenerateHexColor()}";
+                                    <MudChip T="string" Size="Size.Small" Style='@style'>@tag</MudChip>
+                                }
+                            }
+                        </MudText>
+                    </NotAuthorized>
+                </AuthorizeView>
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
+            @if (Reservation != null)
+            {
+                <MudAlert Icon="@Icons.Material.Filled.AccessTime" Severity="Severity.Warning">@Reservation.UserName - @Reservation.Title</MudAlert>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Success">Available</MudAlert>
+            }
+            <div class="mt-2" style="width:250px;overflow:hidden;height:17px;text-overflow:ellipsis">
+                @if (string.IsNullOrEmpty(status.FileName))
+                {
+                    <MudText Typo="Typo.caption">No file</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption">@status.FileName</MudText>
+                }
+            </div>
+
             @if (!string.IsNullOrEmpty(image))
             {
                 <MudImage Src="@image" Elevation="0" Style="background:white" Class="rounded-lg" Width="140" Height="110" />
@@ -42,6 +69,11 @@
             else
             {
                 <MudImage Src="./images/printproxy_logo.svg" Elevation="0" Style="background:white" Class="rounded-lg" Width="140" Height="110" />
+            }
+
+            @if(IsBusy)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
             }
 
                 <MudProgressLinear Color="Color.Info" Size="Size.Large" style="height:20px" Value="status.Progress" Max="100" Class="my-2">
@@ -52,7 +84,7 @@
                 
                 @if (!IsKiosk)
                 {
-                    <AuthorizeView>
+                    <AuthorizeView Roles="admin">
                         <Authorized>
                             <MudButtonGroup Class="mt-2" OverrideStyles="false" >
                                 <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
@@ -69,7 +101,14 @@
 
 @code {
 
+    [CascadingParameter]
+    public EventDelegator? OnUpdate { get; set; }
+    
     PrinterStatus status = new PrinterStatus();
+
+    ReservationInfoDto Reservation = null!;
+    
+    List<string> tags = new List<string>();
 
     string image = string.Empty;
 
@@ -77,6 +116,8 @@
 
     bool updated = false;
 
+    bool IsReserved = false;
+    
     bool firstLoad = true;
 
     bool authorized = false;
@@ -88,42 +129,43 @@
 
     [Parameter]
     public bool DisableControls { get; set; } = false;
+    
+    [Parameter]
+    public bool ShowTags { get; set; } = false;
 
     [Parameter]
     public IPrinter Printer { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        var authstate = await auth.GetAuthenticationStateAsync();
-        authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
-        await update();
+        if (OnUpdate != null)
+        {
+            OnUpdate.OnEvent += OnEvent;
+        }
         await base.OnInitializedAsync();
     }
 
-    public async Task update()
+    public async void OnEvent(object sender)
     {
-
-        using var scope = serviceProvider.CreateAsyncScope();
-
-        if (IsBusy)
-        {
-            return;
-        }
-
-        if (updated)
-        {
-            return;
-        }
-
+        await InvokeAsync(Update);
+    }
+    
+    public async Task Update()
+    {
+        var authstate = await auth.GetAuthenticationStateAsync();
+        authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
+        tags = await tagService.GetPrinterTagsAsync(Printer.GetIdentifier());
+        
+        var prModel = await indexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
+        Reservation = await ReservationService.GetCurrentPrinterReservationAsync(prModel.PrinterId);
+        
         IsBusy = true;
         await InvokeAsync(StateHasChanged);
 
         string identifier = Printer.GetIdentifier();
-
+        
         var cached = await _cache.GetStringAsync(identifier);
-
-        IPrinterIndexService indexService = scope.ServiceProvider.GetRequiredService<IPrinterIndexService>();
-
+        
         if (cached != null)
         {
             if (firstLoad)
@@ -135,10 +177,10 @@
         }
         else
         {
-
             try
             {
                 status = await Printer.GetStatusAsync();
+                var printerIndexed = await indexService.GetPrinterByIdentifierAsync(status.Identifier);
 
                 if (status.Status.ToLower() == "offline")
                 {
@@ -193,36 +235,6 @@
         }
     }
 
-    protected override bool ShouldRender()
-    {
-        return true;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!updated)
-        {
-            if (!IsBusy)
-            {
-                await update();
-                updated = true;
-            }
-        }
-        else
-        {
-            updated = false;
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    protected override Task OnParametersSetAsync()
-    {
-
-
-        return base.OnParametersSetAsync();
-    }
-
     public async Task OnPrinterStopAsync()
     {
         var parameters = new DialogParameters<DefaultDialog>
@@ -243,4 +255,13 @@
             await Printer.StopAsync();
         }
     }
+
+    public void Dispose()
+    {
+        if (OnUpdate != null)
+        {
+            OnUpdate.OnEvent -= OnEvent;
+        }
+    }
+
 }

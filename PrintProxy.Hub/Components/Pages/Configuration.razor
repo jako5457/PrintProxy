@@ -1,11 +1,12 @@
 ﻿@page "/config"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "admin")]
 @using PrintProxy.Hub.Components.Dialogs.Configuration;
 @using PrintLib.FlashForge;
 @using PrintLib.OctoPrint;
 @using PrintProxy.Hub.Extensions
 @using PrintLib.Moonraker;
 @inject IPrinterConfigurationService _configService;
+@inject IPrinterIndexService _PrinterIndexer;
 @inject ISnackbar _snackbar;
 @inject IDialogService Diag;
 @inject IJSRuntime js;
@@ -19,6 +20,7 @@
     {
         <MudChip T="string" Icon="@Icons.Material.Filled.Info" IconColor="Color.Warning" Label="true">Configuration have unsaved changes</MudChip>
     }
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Info" Class="mr-1" OnClick="UpdateIndex" Disabled="@(Indexing)">Update Index</MudButton>
     <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="Save" Disabled="@(!HaveChanges)">Save</MudButton>
 </MudToolBar>
 
@@ -45,12 +47,23 @@
                     <MudTh>Printer Ip</MudTh>
                     <MudTh>Checkcode</MudTh>
                     <MudTh>Port</MudTh>
+                    <MudTh>IFS</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Printer Ip">@context.PrinterIP</MudTd>
                     <MudTd DataLabel="Checkcode">@context.CheckCode</MudTd>
                     <MudTd DataLabel="Port">@context.Port</MudTd>
+                    <MudTd DataLabel="Port">
+                        @if (context.MultiColor)
+                        {
+                            @: yes
+                        }
+                        else
+                        {
+                            @: no
+                        }
+                    </MudTd>
                 </RowTemplate>
                 <RowEditingTemplate>
                     <MudTd DataLabel="Printer Ip">
@@ -61,6 +74,9 @@
                     </MudTd>
                     <MudTd DataLabel="Port">
                         <MudTextField InputMode="InputMode.numeric" @bind-Value="context.Port" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Port">
+                        <MudSwitch @bind-Value="context.MultiColor" UncheckedColor="Color.Error" Color="Color.Success" />
                     </MudTd>
                     <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
                 </RowEditingTemplate>
@@ -155,7 +171,7 @@
             </MudTable>
         </ChildContent>
     </MudExpansionPanel>
-
+    
 </MudExpansionPanels>
 
 @code {
@@ -163,7 +179,8 @@
     MainConfigEntry Config = new MainConfigEntry();
 
     bool HaveChanges = false;
-
+    bool Indexing = false;
+    
     protected override async Task OnInitializedAsync()
     {
         Config = _configService.GetConfig();
@@ -181,7 +198,29 @@
     {
         _configService.SaveConfig(Config);
         _snackbar.Add("Configuration updated", Severity.Success);
+
         HaveChanges = false;
+        await InvokeAsync(StateHasChanged);
+
+        await UpdateIndex();
+    }
+
+    private async Task UpdateIndex()
+    {
+        Indexing = true;
+        await InvokeAsync(StateHasChanged);
+        var updateStatus = _snackbar.Add("Updating Index", Severity.Info, config =>
+        {
+            config.Icon = Icons.Material.Filled.Refresh;
+            config.CloseAfterNavigation = false;
+            config.ShowCloseIcon = false;
+            config.VisibleStateDuration = int.MaxValue;
+        });
+        await _PrinterIndexer.BeginIndexingAsync();
+        
+        _snackbar.Remove(updateStatus);
+        _snackbar.Add("Index Updated", Severity.Success);
+        Indexing = false;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -297,6 +336,7 @@
             _snackbar.Add("Config upload completed", Severity.Success);
             Config = _configService.GetConfig();
             await InvokeAsync(StateHasChanged);
+            await UpdateIndex();
         }
     }
 }

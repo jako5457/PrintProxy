@@ -1,0 +1,28 @@
+﻿using PrintProxy.Hub.Services.Dto;
+
+namespace PrintProxy.Hub.Services.reservation;
+
+public interface IReservationService
+{
+    public Task<ReservationInfoDto?> GetCurrentPrinterReservationAsync(int printerId);
+
+    public Task<List<ReservationInfoDto>> GetReservationsByPrinterAsync(int printerId);
+
+    public Task<List<ReservationInfoDto>> GetReservationsByUserAsync(string userId);
+
+    public Task<List<ReservationInfoDto>> GetReservationsByDateAsync(DateTime date);
+    
+    public Task CreateReservationAsync(EditReservationDto reservation);
+
+    public Task CreateReservationsAsync(List<EditReservationDto> reservations);
+    
+    public Task EditReservationAsync(EditReservationDto reservation, int reservationId);
+
+    public Task DeleteReservationAsync(int reservationId);
+
+    public Task PurgeOldReservationsAsync();
+
+    public Task<bool> ValidateValidReservationAsync(int printerId,DateTime start, DateTime end);
+
+    public Task<bool> ValidateValidReservationWithReservationAsync(ReservationInfoDto reservation, DateTime start, DateTime end);
+}

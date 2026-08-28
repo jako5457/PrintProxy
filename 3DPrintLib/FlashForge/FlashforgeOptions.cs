@@ -22,6 +22,8 @@ namespace PrintLib.FlashForge
         [JsonProperty("check_code")]
         public required string CheckCode { get; set; }
 
+        public bool MultiColor { get; set; } = false;
+
         [JsonIgnore]
         public string FullAddress { get => $"http://{PrinterIP}:{Port}"; }
 

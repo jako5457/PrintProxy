@@ -3,14 +3,26 @@ using Microsoft.EntityFrameworkCore;
 using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Data.Entities;
 using PrintProxy.Hub.Models;
+using PrintProxy.Hub.Services.Tags;
 using System.Net.NetworkInformation;
 
 namespace PrintProxy.Hub.Services
 {
-    public class PrinterIndexService(ApplicationDbContext context, IPrinterConfigurationService config, ILogger<PrinterIndexService> logger, IPrinterFactory printerFactory) : IPrinterIndexService
+    public class PrinterIndexService(IServiceProvider serviceProvider,ILogger<PrinterIndexService> logger) : IPrinterIndexService
     {
+
+        private const string OctoPrintTagName = "OctoPrint";
+        private const string FlashForgeTagName = "Flashforge";
+        private const string MoonRakerTagName = "Moonraker";
+
         public async Task BeginIndexingAsync()
         {
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterConfigurationService config = scope.ServiceProvider.GetRequiredService<IPrinterConfigurationService>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+            ITagService tagService = scope.ServiceProvider.GetRequiredService<ITagService>();
+            
             logger.LogInformation("Printer indexer starting");
 
             logger.LogInformation("Reading config.....");
@@ -19,12 +31,36 @@ namespace PrintProxy.Hub.Services
 
             logger.LogInformation("Check octoprint configs....");
 
+            if (configuration.Octoprint.Any())
+            {
+                await tagService.CreateTagAsync(OctoPrintTagName, true);
+            }
+
+            if (configuration.Flashforge.Any())
+            {
+                await tagService.CreateTagAsync(FlashForgeTagName, true);
+            }
+
+            if (configuration.Moonraker.Any())
+            {
+                await tagService.CreateTagAsync(MoonRakerTagName, true);
+            }
+
             foreach (var Octoprinter in configuration.Octoprint)
             {
                 if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == Octoprinter.Identifier))
                 {
 
                     logger.LogInformation("Octoprint Printer does not exist.. Creating...");
+
+                    Tag? OctoTag = await context.Tags
+                                                .Where(t => t.TagName == OctoPrintTagName)
+                                                .FirstOrDefaultAsync();
+
+                    if (OctoTag == null)
+                    {
+                        break;
+                    }
 
                     logger.LogInformation("Getting printer info.....");
 
@@ -39,7 +75,8 @@ namespace PrintProxy.Hub.Services
                             Printer printer = new Printer()
                             {
                                 PrinterName = status.PrinterName,
-                                PrinterIdentifier = Octoprinter.Identifier
+                                PrinterIdentifier = Octoprinter.Identifier,
+                                Tags = new List<Tag>() { OctoTag }
                             };
 
                             context.Printers.Add(printer);
@@ -51,69 +88,174 @@ namespace PrintProxy.Hub.Services
                         continue;
                     }
                 }
-
-                foreach (var flashprinter in configuration.Flashforge)
+                else
                 {
-                    if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == flashprinter.Identifier))
+                    var printer = await context.Printers.Where(p => p.PrinterIdentifier == Octoprinter.Identifier).FirstOrDefaultAsync();
+
+                    if (printer == null)
                     {
-                        var printerconn = printerFactory.GetPrinterByIdentifier(flashprinter.Identifier);
+                        continue;
+                    }
 
-                        if (printerconn != null)
+                    var printerconn = printerFactory.GetPrinterByIdentifier(Octoprinter.Identifier);
+
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
+
+                    var information = await printerconn.GetStatusAsync();
+
+                    if (printer.PrinterName != information.PrinterName)
+                    {
+                        if (string.IsNullOrWhiteSpace(printer.PrinterName))
                         {
-                            var status = await printerconn.GetStatusAsync();
-
-                            Printer printer = new Printer()
-                            {
-                                PrinterName = status.PrinterName,
-                                PrinterIdentifier = flashprinter.Identifier
-                            };
-
-                            context.Printers.Add(printer);
+                            printer.PrinterName = information.PrinterName;
                         }
                     }
                 }
 
-                foreach (var moonraker in configuration.Moonraker)
+            }
+
+            foreach (var flashprinter in configuration.Flashforge)
+            {
+                if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == flashprinter.Identifier))
                 {
-                    if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == moonraker.Identifier))
+                    Tag? FlashForgeTag = await context.Tags
+                                                      .Where(t => t.TagName == FlashForgeTagName)
+                                                      .FirstOrDefaultAsync();
+
+                    if (FlashForgeTag == null)
                     {
-                        var printerconn = printerFactory.GetPrinterByIdentifier(moonraker.Identifier);
+                        break;
+                    }
+    
+                    var printerconn = printerFactory.GetPrinterByIdentifier(flashprinter.Identifier);
 
-                        if (printerconn != null)
+                    if (printerconn != null)
+                    {
+                        var status = await printerconn.GetStatusAsync();
+
+                        Printer printer = new Printer()
                         {
-                            var status = await printerconn.GetStatusAsync();
+                            PrinterName = status.PrinterName,
+                            PrinterIdentifier = flashprinter.Identifier,
+                            Tags = new List<Tag>() { FlashForgeTag }
+                        };
 
-                            Printer printer = new Printer()
-                            {
-                                PrinterName = status.PrinterName,
-                                PrinterIdentifier = moonraker.Identifier
-                            };
+                        context.Printers.Add(printer);
+                    }
+                }
+                else
+                {
+                    var printer = await context.Printers.Where(p => p.PrinterIdentifier == flashprinter.Identifier).FirstOrDefaultAsync();
 
-                            context.Printers.Add(printer);
+                    if (printer == null)
+                    {
+                        continue;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(flashprinter.Identifier);
+
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
+
+                    var information = await printerconn.GetStatusAsync();
+
+                    if (printer.PrinterName != information.PrinterName)
+                    {
+                        if (string.IsNullOrWhiteSpace(printer.PrinterName))
+                        {
+                           printer.PrinterName = information.PrinterName; 
                         }
                     }
                 }
+            }
 
-                try
+            foreach (var moonraker in configuration.Moonraker)
+            {
+                if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == moonraker.Identifier))
                 {
-                    await context.SaveChangesAsync();
-                }
-                catch (Exception e)
-                {
-                    logger.LogCritical(e, "Indexing failed...");
-                    Environment.Exit(0);
-                }
 
+                    Tag? MoonRakerTag = await context.Tags
+                                                     .Where(t => t.TagName == MoonRakerTagName)
+                                                     .FirstOrDefaultAsync();
+
+                    if (MoonRakerTag == null)
+                    {
+                        break;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(moonraker.Identifier);
+
+                    if (printerconn != null)
+                    {
+                        var status = await printerconn.GetStatusAsync();
+
+                        Printer printer = new Printer()
+                        {
+                            PrinterName = status.PrinterName,
+                            PrinterIdentifier = moonraker.Identifier,
+                            Tags = new List<Tag>() { MoonRakerTag }
+                        };
+
+                        context.Printers.Add(printer);
+                    }
+                }
+                else
+                {
+                    var printer = await context.Printers.Where(p => p.PrinterIdentifier == moonraker.Identifier).FirstOrDefaultAsync();
+
+                    if (printer == null)
+                    {
+                        continue;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(moonraker.Identifier);
+
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
+
+                    var information = await printerconn.GetStatusAsync();
+
+                    if (printer.PrinterName != information.PrinterName)
+                    {
+                        if (string.IsNullOrWhiteSpace(printer.PrinterName))
+                        {
+                            printer.PrinterName = information.PrinterName;
+                        }
+                    }
+                }
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                logger.LogCritical(e, "Indexing failed...");
+                Environment.Exit(0);
             }
         }
 
         public async Task<List<PrinterModel>> GetPrintersAsync()
         {
+            
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+            
             var printers = await context.Printers.Select(p => new PrinterModel()
             {
                PrinterId = p.PrinterId,
                PrinterName = p.PrinterName,
-               PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!
+               PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!,
+               Tags = p.Tags.Select(t => t.TagName).ToArray()
             }).ToListAsync();
 
             return printers.Where(p => p.PrinterConn != null).ToList();
@@ -121,11 +263,16 @@ namespace PrintProxy.Hub.Services
 
         public async Task<PrinterModel?> GetPrinterByIdAsync(int id)
         {
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+
             return await context.Printers.Select(p => new PrinterModel()
             {
                 PrinterId = p.PrinterId,
                 PrinterName = p.PrinterName,
-                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!
+                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!,
+                Tags = p.Tags.Select(t => t.TagName).ToArray()
             })
             .Where(p => p.PrinterId == id)
             .FirstOrDefaultAsync();
@@ -133,12 +280,17 @@ namespace PrintProxy.Hub.Services
 
         public async Task<PrinterModel?> GetPrinterByIdentifierAsync(string identifier)
         {
+            var scope = serviceProvider.CreateAsyncScope();
+            ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
+            
             return await context.Printers.Select(p => new PrinterModel()
             {
                 PrinterId = p.PrinterId,
                 PrinterName = p.PrinterName,
                 PrinterIdentifier = p.PrinterIdentifier,
-                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!
+                PrinterConn = printerFactory.GetPrinterByIdentifier(p.PrinterIdentifier) ?? null!,
+                Tags = p.Tags.Select(t => t.TagName).ToArray()
             })
             .Where(p => p.PrinterIdentifier == identifier)
             .FirstOrDefaultAsync();

@@ -6,12 +6,26 @@
     <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.LocalPrintshop">Printers</MudNavLink>
     <AuthorizeView>
         <Authorized>
-            <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
-            <MudNavLink Href="config" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FileCode">Configuration</MudNavLink>
+            <MudNavLink Href="reservations" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.PermContactCalendar">Your Reservations</MudNavLink>
+            <MudNavLink Href="reservations/calendar" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CalendarToday">Reservation Calendar</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="admin">
+        <Authorized>
+            <MudNavGroup Title="Admin"  Icon="@Icons.Material.Filled.MonitorHeart" Expanded="true">
+                <MudNavLink Href="files" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Folder">Files</MudNavLink>
+                <MudNavLink Href="config" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FileCode">Configuration</MudNavLink>
+                <MudNavLink Href="users" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People">Users</MudNavLink>
+                <MudNavLink Href="reservations/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CalendarMonth">Reservation Options</MudNavLink>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView>
+        <Authorized>
             <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
             <form action="Account/Logout" method="post">
-                <AntiforgeryToken />
-                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                <AntiforgeryToken/>
+                <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
                 <button type="submit" class="mud-nav-link mud-ripple">
                     <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
                 </button>

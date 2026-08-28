@@ -12,7 +12,14 @@ namespace PrintProxy.Hub.Models
 
         public string PrinterIdentifier { get; set; } = string.Empty;
 
+        public string[] Tags = new string[0];
+
         [JsonIgnore]
         public IPrinter PrinterConn { get; set; } = null!;
+
+        public override string ToString()
+        {
+            return PrinterName;
+        }
     }
 }

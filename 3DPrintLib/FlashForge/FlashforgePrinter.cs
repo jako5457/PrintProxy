@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Security.Cryptography;
+using _3DPrintLib.FlashForge.FlashDtos;
 
 namespace PrintLib.FlashForge
 {
@@ -182,7 +183,18 @@ namespace PrintLib.FlashForge
             {
                 var client = SetupClient();
 
-                var request = _Options.SetupRequest<FlashForgePrintRequest>();
+                FlashForgePrintRequest request;
+
+                if (_Options.MultiColor)
+                {
+                    var mcrequest = _Options.SetupRequest<FlashForgeMultiColorPrintRequest>();
+                    mcrequest.UseMatlStation = true;
+                    request = mcrequest;
+                }
+                else
+                {
+                    request = _Options.SetupRequest<FlashForgePrintRequest>();
+                }
 
                 request.FileName = fileName;
 

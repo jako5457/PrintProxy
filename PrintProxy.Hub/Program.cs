@@ -8,7 +8,8 @@ using PrintProxy.Hub.Data;
 using PrintProxy.Hub.Services;
 using PrintProxy.Hub.Extensions;
 using PrintProxy.Hub.Services.Files;
-using System.Text;
+using PrintProxy.Hub.Services.reservation;
+using PrintProxy.Hub.Services.Tags;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddStackExchangeRedisCache(a =>
     a.InstanceName = "PrintCache";
 });
 
+builder.AddSelfSignedSslCert();
+
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
@@ -35,6 +38,8 @@ builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
 builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
+builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddSingleton<EmergencyManager>();
 builder.Services.AddHttpClient();
 
@@ -66,7 +71,6 @@ builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -75,7 +79,7 @@ using (var scope = app.Services.CreateScope())
     await context.Database.EnsureCreatedAsync();
 }
 
-await app.SetupDefaultAdminUserAsync(); // Frist time setup
+await app.SetupDefaultAdminUserAsync(); // First time setup
 
 app.MapHealthChecks("/health");
 

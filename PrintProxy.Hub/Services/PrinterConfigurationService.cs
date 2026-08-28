@@ -21,7 +21,7 @@ namespace PrintProxy.Hub.Services
                 location = "PrinterConfig.json";
             }
 
-            logger.LogInformation("Printer configuration is " + location);
+            //logger.LogInformation("Printer configuration is " + location);
 
             if (!File.Exists(location))
             {

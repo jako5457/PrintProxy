@@ -9,5 +9,10 @@
 
         public string PrinterIdentifier { get; set; } = string.Empty;
 
+        public bool IsUnderService { get; set; } = false;
+        
+        public List<Tag> Tags { get; set; } = null!;
+
+        public List<Reservation> Reservations { get; set; } = null!;
     }
 }

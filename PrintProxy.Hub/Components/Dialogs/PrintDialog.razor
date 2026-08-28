@@ -119,7 +119,10 @@
 
             await printer.printer.UploadAsync(file.FileInfo.FullName);
             await Task.Delay(1000);
+        }
 
+        foreach (var printer in selectedPrinters)
+        {
             statusText = $"Starting print on {printer.status.PrinterName}";
             await InvokeAsync(StateHasChanged);
 

@@ -4,8 +4,8 @@
     {
 
         public static string[] DangerColors = ["error", "stopped","offline"];
-        public static string[] InfoColors = ["printing"];
-        public static string[] SucessColors = ["completed"];
+        public static string[] InfoColors = ["printing","calibrate_doing","busy"];
+        public static string[] SucessColors = ["completed","finished"];
 
         public static MudBlazor.Color GetStatusColor(this string text)
         {

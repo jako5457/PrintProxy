@@ -1,0 +1,18 @@
+﻿@page "/reservations/admin"
+@using PrintProxy.Hub.Services.reservation
+
+@attribute [Authorize(Roles = "admin")]
+@inject IReservationService ReservationService
+@inject ISnackbar Snackbar
+
+<h3>ReseravationOptions</h3>
+
+<MudButton OnClick="PurgeOldReservations" Variant="Variant.Filled" Color="Color.Error" >Purge Old Reservations</MudButton>
+
+@code {
+    public async Task PurgeOldReservations()
+    {
+        await ReservationService.PurgeOldReservationsAsync();
+        Snackbar.Add("All old reservations purged",Severity.Success);
+    }
+}

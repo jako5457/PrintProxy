@@ -1,0 +1,74 @@
+﻿@page "/reservations/calendar"
+@using Microsoft.EntityFrameworkCore.Query.SqlExpressions
+@using PrintProxy.Hub.Services.Dto
+@using PrintProxy.Hub.Services.reservation
+@inject IReservationService ReservationService
+
+@attribute [Authorize]
+
+<h2>Reservation Calendar</h2>
+
+<MudTable Items="Reservations" ReadOnly="true">
+    <ToolBarContent>
+        <MudGrid Justify="Justify.Center">
+            <MudItem>
+                <MudIconButton OnClick="PreviousDate" Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Primary"/>
+            </MudItem>
+            <MudItem>
+                <MudDatePicker Class="mt-2" Editable="true" Date="Date" DateChanged="DateChanged" DateFormat="dd.MM.yyyy" Variant="Variant.Text"/>
+            </MudItem>
+            <MudItem>
+                <MudIconButton OnClick="NextDate" Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary"/>
+            </MudItem>
+        </MudGrid>
+        
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>PrinterName</MudTh>
+        <MudTh>Title</MudTh>
+        <MudTh>Start date</MudTh>
+        <MudTh>End date</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="PrinterName">@context.PrinterName</MudTd>
+        <MudTd DataLabel="Title">@context.Title</MudTd>
+        <MudTd DataLabel="Start">@context.StartDate.ToString("dd/MM/yyyy HH:mm")</MudTd>
+        <MudTd DataLabel="End">@context.EndDate.ToString("dd/MM/yyyy HH:mm")</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    public DateTime? Date { get; set; } = DateTime.Now;
+
+    public List<ReservationInfoDto> Reservations { get; set; } = new List<ReservationInfoDto>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await Update();
+        await base.OnInitializedAsync();
+    }
+
+    async Task NextDate()
+    {
+        Date = Date.GetValueOrDefault(DateTime.Now).AddDays(1);
+        await Update();
+    }
+    
+    async Task PreviousDate()
+    {
+        Date = Date.GetValueOrDefault(DateTime.Now).AddDays(-1);
+        await Update();
+    }
+
+    async Task DateChanged(DateTime? date)
+    {
+        Date = date;
+        await Update();
+    }
+    
+    async Task Update()
+    {
+        Reservations = await ReservationService.GetReservationsByDateAsync(Date.GetValueOrDefault(DateTime.Now));
+        await InvokeAsync(StateHasChanged);
+    }
+}
