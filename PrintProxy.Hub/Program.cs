@@ -10,8 +10,16 @@ using PrintProxy.Hub.Extensions;
 using PrintProxy.Hub.Services.Files;
 using PrintProxy.Hub.Services.reservation;
 using PrintProxy.Hub.Services.Tags;
+using Serilog.AspNetCore;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+             .WriteTo.Console()
+             .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog();
 
 // Add MudBlazor services
 builder.Services.AddMudServices();

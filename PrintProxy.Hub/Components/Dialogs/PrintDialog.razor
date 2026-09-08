@@ -118,7 +118,7 @@
             await InvokeAsync(StateHasChanged);
 
             await printer.printer.UploadAsync(file.FileInfo.FullName);
-            await Task.Delay(1000);
+            // await Task.Delay(1000);
         }
 
         foreach (var printer in selectedPrinters)

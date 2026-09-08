@@ -1,0 +1,39 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  printproxy.hub:
+    build:
+      context: "C:\\Users\\jako5457\\source\\repos\\jako5457\\PrintProxy"
+      dockerfile: "PrintProxy.Hub/Dockerfile"
+      target: "base"
+      args:
+        BUILD_CONFIGURATION: "Debug"
+    command: []
+    entrypoint:
+    - "/opt/JetBrains/RiderDebuggerTools/linux-x64/JetBrains.Debugger.Worker"
+    - "--runtimeconfig"
+    - "/opt/JetBrains/RiderDebuggerTools/JetBrains.Debugger.Worker.runtimeconfig.json"
+    - "--mode=server"
+    - "--frontend-port=57000"
+    - "--backend-port=57200"
+    - "--roslyn-worker-port=57404"
+    - "--timeout=60"
+    environment:
+      ASPNETCORE_STATICWEBASSETS: "/app/bin/Debug/net10.0/PrintProxy.Hub.staticwebassets.runtime.CT.json"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      RIDER_DEBUGGER_LOG_DIR: "/var/opt/JetBrains/RiderDebuggerTools"
+      RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
+    image: "printproxy.hub:dev"
+    ports:
+    - "127.0.0.1:57004:57000"
+    - "127.0.0.1:57204:57200"
+    - "127.0.0.1:57404:57404"
+    volumes:
+    - "C:\\Users\\jako5457\\source\\repos\\jako5457\\PrintProxy\\PrintProxy.Hub:/app:rw"
+    - "C:\\Users\\jako5457\\source\\repos\\jako5457\\PrintProxy:/src:rw"
+    - "C:\\Users\\jako5457\\.nuget\\packages:/home/app/.nuget/packages"
+    - "C:\\Users\\jako5457\\AppData\\Local\\JetBrains\\RiderRemoteDebugger\\2026.2.1\\\
+      Linux64:/opt/JetBrains/RiderDebuggerTools"
+    - "C:\\Program Files\\JetBrains\\JetBrains Rider 2026.2.0.2\\bin\\backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
+    - "C:\\Users\\jako5457\\AppData\\Local\\JetBrains\\Rider2026.2\\log\\DebuggerWorker\\\
+      JetBrains.Debugger.Worker.2026_8_28_09_11_01:/var/opt/JetBrains/RiderDebuggerTools:rw"
+    working_dir: "/app"
