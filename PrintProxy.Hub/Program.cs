@@ -40,6 +40,7 @@ builder.AddSelfSignedSslCert();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IPrinterThumbnailService,PrinterThumbnailService>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
@@ -73,9 +74,11 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddApiEndpoints();
 
 builder.Services.AddAuthorizationCore();
+builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
@@ -102,17 +105,21 @@ using(var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+    app.MapOpenApi();
 }
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+
+app.MapControllers();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
