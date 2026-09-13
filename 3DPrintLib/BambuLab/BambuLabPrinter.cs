@@ -16,14 +16,15 @@ namespace _3DPrintLib.BambuLab
     public class BambuLabPrinter : IPrinter
     {
 
-        public Logger<BambuLabPrinter> _Logger;
+        public ILogger<BambuLabPrinter> _Logger;
         public MqttClientFactory _MqttClientFactory;
         public BambuLabOptions _options;
 
-        public BambuLabPrinter(Logger<BambuLabPrinter> logger, MqttClientFactory mqttClientFactory,BambuLabOptions options)
+        public BambuLabPrinter(ILogger<BambuLabPrinter> logger, MqttClientFactory mqttClientFactory,BambuLabOptions options)
         {
             _Logger = logger;
             _MqttClientFactory = mqttClientFactory;
+            _options = options;
         }
 
         public async Task StartAsync(string fileName)
@@ -144,9 +145,9 @@ namespace _3DPrintLib.BambuLab
             return Convert.ToBase64String(identifier);
         }
 
-        public Task<JobStatus> GetJobStatusAsync()
+        public async Task<JobStatus> GetJobStatusAsync()
         {
-            throw new NotImplementedException();
+            return await GetStatusAsync();
         }
 
         public async Task<PrinterStatus> GetStatusAsync()

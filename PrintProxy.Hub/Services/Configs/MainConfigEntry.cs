@@ -1,4 +1,5 @@
-﻿using PrintLib.FlashForge;
+﻿using _3DPrintLib.BambuLab;
+using PrintLib.FlashForge;
 using PrintLib.Moonraker;
 using PrintLib.OctoPrint;
 using System.Text.Json.Serialization;
@@ -16,5 +17,8 @@ namespace PrintProxy.Hub.Services.Configs
 
         [JsonPropertyName("moonraker")]
         public List<MoonrakerOptions> Moonraker { get; set; } = new();
+
+        [JsonPropertyName("bambu")]
+        public List<BambuLabOptions> Bambu { get; set; } = new();
     }
 }
