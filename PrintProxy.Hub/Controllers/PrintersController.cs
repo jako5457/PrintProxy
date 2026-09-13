@@ -21,7 +21,6 @@ namespace PrintProxy.Hub.Controllers
 
         private readonly IPrinterFactory _PrinterFactory;
         private readonly IPrinterIndexService _IndexService;
-
         private readonly IPrinterThumbnailService _PrinterThumbnailService;
 
         public PrintersController(IPrinterFactory printerFactory, IPrinterIndexService indexService,IPrinterThumbnailService printerThumbnailService)
