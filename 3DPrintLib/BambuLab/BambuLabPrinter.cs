@@ -1,6 +1,8 @@
 ﻿using _3DPrintLib.BambuLab.Dtos.PrintInfo;
 using _3DPrintLib.BambuLab.Waiters;
 using FluentFTP;
+using FluentFTP.GnuTLS;
+using FluentFTP.GnuTLS.Enums;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Formatter;
@@ -9,6 +11,7 @@ using PrintLib;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Channels;
@@ -41,12 +44,25 @@ namespace _3DPrintLib.BambuLab
                 {
                     print = new
                     {
-                        command = "start",
+                        command = "project_file",
                         sequence_id = 0,
-                        param = new
-                        {
-                            file_name = fileName
-                        }
+                        param = "",
+                        project_id = 0,
+                        profile_id = 0,
+                        task_id = 0,
+                        subtask_id = 0,
+                        subtask_name = "",
+                        file = fileName,
+                        url = "file:///mnt/sdcard",
+                        md5 = "",
+                        timelapse = false,
+                        bed_type = "auto",
+                        bed_levelling = true,
+                        flow_cali = true,
+                        vibration_cali = true,
+                        layer_inspect = true,
+                        ams_mapping = "",
+                        use_ams = true
                     }
                 };
 
@@ -204,15 +220,31 @@ namespace _3DPrintLib.BambuLab
             {
                 ValidateAnyCertificate = true,
                 EncryptionMode = FtpEncryptionMode.Explicit,
+                SslProtocols = SslProtocols.Tls12,
+                CustomStream = typeof(GnuTlsStream),
+                CustomStreamConfig = new GnuConfig()
+                {
+                    SecuritySuite = GnuSuite.Secure128,
+                    SetALPNControlConnection = string.Empty,
+                    SetALPNDataConnection = string.Empty
+                }
             };
 
             using AsyncFtpClient client = new AsyncFtpClient(_options.PrinterIP,"bblp",_options.AccessCode, 990, config);
 
+            client.LegacyLogger = (a, b) => _Logger.LogInformation(b);
+            
+            
             await client.AutoConnect();
 
             if (client.IsConnected || client.IsAuthenticated)
             {
-                await client.UploadFile(FilePath, fileinfo.Name);
+               var status = await client.UploadFile(FilePath, fileinfo.Name);
+
+                if (status == FtpStatus.Failed)
+                {
+                    _Logger.LogError("Failed to upload file");
+                }
             }
         }
 

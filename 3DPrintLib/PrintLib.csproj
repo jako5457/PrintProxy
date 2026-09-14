@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentFTP" Version="54.2.0" />
+    <PackageReference Include="FluentFTP.GnuTLS" Version="1.0.40" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
     <PackageReference Include="MQTTnet" Version="5.2.0.1603" />
