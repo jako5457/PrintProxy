@@ -32,10 +32,17 @@ namespace _3DPrintLib.BambuLab.Waiters
             data = args.ApplicationMessage.Payload.ToArray();
         }
 
-        public async Task<byte[]> WaitForMessage()
+        public async Task<byte[]> WaitForMessage(int MaxRetries = 10)
         {
+            int retries = 0;
             while(data == null) {
                 await Task.Delay(Random.Shared.Next(500, 2000));
+                retries++;
+
+                if (retries >= MaxRetries)
+                {
+                   return new byte[0];
+                }
             }
 
             return data;

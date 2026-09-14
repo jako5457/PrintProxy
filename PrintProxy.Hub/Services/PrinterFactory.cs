@@ -70,6 +70,13 @@ namespace PrintProxy.Hub.Services
                 return new MoonrakerPrinter(MoonrakerPrinterOptions, _httpClientFactory, _serviceProvider.GetRequiredService<ILogger<MoonrakerPrinter>>());
             }
 
+            var BambuOptions = _config.Bambu.FirstOrDefault(p => p.Identifier == identifier);
+
+            if (BambuOptions != null)
+            {
+                return new BambuLabPrinter(_serviceProvider.GetRequiredService<ILogger<BambuLabPrinter>>(), _mqttClientFactory, BambuOptions);
+            }
+
             return null;
         }
 

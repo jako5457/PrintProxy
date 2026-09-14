@@ -1,4 +1,5 @@
-﻿using _3DPrintLib.BambuLab.Waiters;
+﻿using _3DPrintLib.BambuLab.Dtos.PrintInfo;
+using _3DPrintLib.BambuLab.Waiters;
 using FluentFTP;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
@@ -7,6 +8,7 @@ using Newtonsoft.Json;
 using PrintLib;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Channels;
@@ -134,16 +136,7 @@ namespace _3DPrintLib.BambuLab
             }
         }
 
-        public string GetIdentifier()
-        {
-            using SHA256 sha = SHA256.Create();
-
-            byte[] data = Encoding.UTF8.GetBytes($"{_options.SerialNunber}:{_options.PrinterIP}");
-
-            byte[] identifier = sha.ComputeHash(data);
-
-            return Convert.ToBase64String(identifier);
-        }
+        public string GetIdentifier() => _options.Identifier;
 
         public async Task<JobStatus> GetJobStatusAsync()
         {
@@ -155,18 +148,52 @@ namespace _3DPrintLib.BambuLab
             using IMqttClient client = _MqttClientFactory.CreateMqttClient();
 
             SingleMessageClientWaiter waiter = new SingleMessageClientWaiter(client);
-
-            await client.SubscribeAsync("device/" + _options.SerialNunber);
+            
             await client.ConnectAsync(CreateClientOptions());
 
             if (client.IsConnected)
             {
+                await client.SubscribeAsync("device/" + _options.SerialNunber + "/report");
+
+                var PushBody = new
+                {
+                    pushing = new
+                    {
+                        command = "pushall"
+                    }
+                };
+
+                string pushjson = JsonConvert.SerializeObject(PushBody);
+
+                MqttApplicationMessage Pushmsg = new MqttApplicationMessage();
+                Pushmsg.Topic = $"device/{_options.SerialNunber}";
+                Pushmsg.Payload = new System.Buffers.ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(pushjson));
+                Pushmsg.QualityOfServiceLevel = MQTTnet.Protocol.MqttQualityOfServiceLevel.ExactlyOnce;
+
+                await client.PublishAsync(Pushmsg);
+
                 var msg = await waiter.WaitForMessage();
 
                 await client.DisconnectAsync();
+
+                string jsondata = Encoding.UTF8.GetString(msg);
+
+                BambuPrintInfoRoot? data = JsonConvert.DeserializeObject<BambuPrintInfoRoot>(jsondata ?? string.Empty);
+
+                if (data != null)
+                {
+                    return new PrinterStatus()
+                    {
+                        PrinterName = _options.PrinterName,
+                        FileName = data.print.SubtaskName,
+                        Progress = data.print.PrintPercent,
+                        Status = data.print.StatusMessage,
+                        PrinterCam = data.print.IpcamInfo.RtspUrl
+                    };
+                }
             }
 
-            throw new NotImplementedException();
+            return new PrinterStatus() { PrinterName = _options.PrinterName };
         }
 
         public async Task UploadAsync(string FilePath)
@@ -196,6 +223,7 @@ namespace _3DPrintLib.BambuLab
             MqttClientTlsOptions tlsoptions = new MqttClientTlsOptionsBuilder()
                                               .UseTls()
                                               .WithAllowUntrustedCertificates()
+                                              .WithCertificateValidationHandler((_) => true)
                                               .Build();
 
             MqttClientOptions options = new MqttClientOptionsBuilder()
@@ -204,6 +232,7 @@ namespace _3DPrintLib.BambuLab
                                         .WithCleanSession()
                                         .WithClientId("PrintProxyService")
                                         .WithTlsOptions(tlsoptions)
+                                        .WithCredentials("bblp",_options.AccessCode)
                                         .Build();
             return options;
         }
