@@ -21,6 +21,9 @@ namespace _3DPrintLib.BambuLab
         [JsonProperty("Serial_number")]
         public string SerialNunber { get; set; } = string.Empty;
 
+        [JsonProperty("Developer_mode")]
+        public bool DevMode { get; set; } = false;
+
         [JsonIgnore]
         public string Identifier
         {

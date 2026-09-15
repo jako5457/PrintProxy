@@ -206,5 +206,9 @@ namespace PrintLib.Moonraker
             }
 
         }
+
+        public bool CanControl() => true;
+        public bool CanUploadFiles() => true;
+
     }
 }

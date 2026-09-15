@@ -170,5 +170,10 @@ namespace PrintLib.OctoPrint
 
             return Convert.ToBase64String(identifier);
         }
+
+        public bool CanControl() => true;
+
+        public bool CanUploadFiles() => true;
+
     }
 }

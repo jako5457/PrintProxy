@@ -31,6 +31,10 @@ namespace PrintLib.FlashForge
             _Options = options;
         }
 
+        public bool CanControl() => true;
+
+        public bool CanUploadFiles() => true;
+
         public async Task ContinueAsync()
         {
             try
@@ -295,8 +299,6 @@ namespace PrintLib.FlashForge
 
             return client;
         }
-
-
 
     }
 }

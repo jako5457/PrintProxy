@@ -269,5 +269,8 @@ namespace _3DPrintLib.BambuLab
             return options;
         }
 
+        public bool CanControl() => _options.DevMode;
+
+        public bool CanUploadFiles() => true;
     }
 }
