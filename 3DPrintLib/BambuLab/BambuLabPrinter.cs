@@ -16,7 +16,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Channels;
 
-namespace _3DPrintLib.BambuLab
+namespace PrintLib.BambuLab
 {
     public class BambuLabPrinter : IPrinter
     {

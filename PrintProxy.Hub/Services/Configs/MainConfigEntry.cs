@@ -1,4 +1,4 @@
-﻿using _3DPrintLib.BambuLab;
+﻿using PrintLib.BambuLab;
 using PrintLib.FlashForge;
 using PrintLib.Moonraker;
 using PrintLib.OctoPrint;

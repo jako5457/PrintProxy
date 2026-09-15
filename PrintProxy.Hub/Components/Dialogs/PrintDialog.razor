@@ -27,7 +27,14 @@
     {
         <MudGrid Class="pb-3">
             <MudItem md="12" sm="12" xs="12">
-                <MudTable FixedHeader="true" Items="printers" @bind-SelectedItems="selectedPrinters" Dense="true" MultiSelection="true">
+                
+            @if (Isloading)
+            {
+                <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" /> @: Loading printers
+            }
+            else
+            {
+                <MudTable FixedHeader="true" T="PrinterListItem" Items="printers" SelectedItemsChanged="ItemsChanged" Dense="true" MultiSelection="true">
                     <HeaderContent>
                         <MudTh>Name</MudTh>
                         <MudTh>Status</MudTh>
@@ -37,17 +44,18 @@
                         <MudTd><MudChip T="string" Size="Size.Small" Color="@context.status.Status.GetStatusColor()">@context.status.Status</MudChip></MudTd>
                     </RowTemplate>
                 </MudTable>
-            </MudItem>
+            }
+        </MudItem>
             <MudItem md="12" sm="12" xs="12">
-                <MudButton Variant="Variant.Filled" OnClick="UploadAsync" Color="Color.Primary">Upload</MudButton>
-                <MudButton Variant="Variant.Filled" OnClick="UploadAndStartAsync" Color="Color.Primary">Upload and print</MudButton>
+                <MudButton Variant="Variant.Filled" Disabled="!CanUpload" OnClick="UploadAsync" Color="Color.Primary">Upload</MudButton>
+                <MudButton Variant="Variant.Filled" Disabled="!CanUploadAndPrint" OnClick="UploadAndStartAsync" Color="Color.Primary">Upload and print</MudButton>
                 <MudButton Variant="Variant.Filled" OnClick="() => MudDialog.Cancel()" Color="Color.Error">Cancel</MudButton>
             </MudItem>
         </MudGrid>
     }
 </MudContainer>
 
-@code {
+    @code {
 
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; }
@@ -55,6 +63,10 @@
     public int ProgressMax = 0;
     public int progress = 0;
     public string statusText = "Starting upload.";
+    bool Isloading = true;
+
+    bool CanUpload = true;
+    bool CanUploadAndPrint = true;
 
     private HashSet<PrinterListItem> selectedPrinters = new HashSet<PrinterListItem>();
     List<PrinterListItem> printers = new();
@@ -77,6 +89,7 @@
         }
 
         printers = printerlist.Zip(statuses).Select(p => new PrinterListItem() { printer = p.First , status = p.Second }).ToList();
+        Isloading = false;
 
         await base.OnInitializedAsync();
     }
@@ -86,6 +99,14 @@
         public IPrinter printer { get; set; }
 
         public PrinterStatus status { get; set; }
+    }
+
+    private async Task ItemsChanged(HashSet<PrinterListItem> items)
+    {
+        selectedPrinters = items;
+        CanUpload = !items.Any(i => !i.printer.CanUploadFiles());
+        CanUploadAndPrint = !items.Any(i => !i.printer.CanControl() && !i.printer.CanUploadFiles());
+        await InvokeAsync(StateHasChanged);
     }
 
     public async Task UploadAsync()
@@ -131,6 +152,4 @@
 
         MudDialog.Close();
     }
-
-
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace _3DPrintLib.BambuLab
+namespace PrintLib.BambuLab
 {
     public class BambuLabOptions
     {

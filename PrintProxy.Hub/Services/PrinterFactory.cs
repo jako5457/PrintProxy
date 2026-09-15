@@ -5,6 +5,7 @@ using PrintProxy.Hub.Services.Configs;
 using PrintLib.Moonraker;
 using _3DPrintLib.BambuLab;
 using MQTTnet;
+using PrintLib.BambuLab;
 
 namespace PrintProxy.Hub.Services
 {
