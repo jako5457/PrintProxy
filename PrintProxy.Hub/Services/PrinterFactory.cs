@@ -3,6 +3,9 @@ using PrintLib.OctoPrint;
 using PrintLib;
 using PrintProxy.Hub.Services.Configs;
 using PrintLib.Moonraker;
+using _3DPrintLib.BambuLab;
+using MQTTnet;
+using PrintLib.BambuLab;
 
 namespace PrintProxy.Hub.Services
 {
@@ -12,12 +15,14 @@ namespace PrintProxy.Hub.Services
         private readonly MainConfigEntry _config;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _serviceProvider;
+        private readonly MqttClientFactory _mqttClientFactory;
 
-        public PrinterFactory(IPrinterConfigurationService configuration, IHttpClientFactory httpClientFactory, IServiceProvider serviceProvider)
+        public PrinterFactory(IPrinterConfigurationService configuration, IHttpClientFactory httpClientFactory, IServiceProvider serviceProvider, MqttClientFactory mqttClientFactory)
         {
             _config = configuration.GetConfig();
             _httpClientFactory = httpClientFactory;
             _serviceProvider = serviceProvider;
+            _mqttClientFactory = mqttClientFactory;
         }
 
         public IEnumerable<IPrinter> GetPrinters()
@@ -35,6 +40,11 @@ namespace PrintProxy.Hub.Services
             foreach (var moonOptions in _config.Moonraker)
             {
                 yield return new MoonrakerPrinter(moonOptions, _httpClientFactory, _serviceProvider.GetRequiredService<ILogger<MoonrakerPrinter>>());
+            }
+
+            foreach (var bambuOptions in _config.Bambu)
+            {
+                yield return new BambuLabPrinter(_serviceProvider.GetRequiredService<ILogger<BambuLabPrinter>>(),_mqttClientFactory,bambuOptions);
             }
         }
 
@@ -59,6 +69,13 @@ namespace PrintProxy.Hub.Services
             if (MoonrakerPrinterOptions != null)
             {
                 return new MoonrakerPrinter(MoonrakerPrinterOptions, _httpClientFactory, _serviceProvider.GetRequiredService<ILogger<MoonrakerPrinter>>());
+            }
+
+            var BambuOptions = _config.Bambu.FirstOrDefault(p => p.Identifier == identifier);
+
+            if (BambuOptions != null)
+            {
+                return new BambuLabPrinter(_serviceProvider.GetRequiredService<ILogger<BambuLabPrinter>>(), _mqttClientFactory, BambuOptions);
             }
 
             return null;

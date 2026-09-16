@@ -10,6 +10,8 @@ using PrintProxy.Hub.Extensions;
 using PrintProxy.Hub.Services.Files;
 using PrintProxy.Hub.Services.reservation;
 using PrintProxy.Hub.Services.Tags;
+using MQTTnet.AspNetCore;
+using MQTTnet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,7 @@ builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddSingleton<EmergencyManager>();
+builder.Services.AddSingleton<MqttClientFactory>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication(options =>

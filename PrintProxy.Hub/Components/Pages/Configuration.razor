@@ -33,7 +33,8 @@
         <ChildContent>
             <MudTable Items="@Config.Flashforge" ReadOnly="false" RowEditCommit="OnCommit" CanCancelEdit="true">
                 <ColGroup>
-                    <col style="width:50%;" />
+                    <col style="width:30%;" />
+                    <col style="width:30%;" />
                     <col style="width:30%;" />
                     <col style="width:15%;" />
                     <col style="width:5%;" />
@@ -45,6 +46,7 @@
                 </ToolBarContent>
                 <HeaderContent>
                     <MudTh>Printer Ip</MudTh>
+                    <MudTh>SerialNumber</MudTh>
                     <MudTh>Checkcode</MudTh>
                     <MudTh>Port</MudTh>
                     <MudTh>IFS</MudTh>
@@ -52,9 +54,10 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Printer Ip">@context.PrinterIP</MudTd>
+                    <MudTd DataLabel="SerialNumber">@context.SerialNumber</MudTd>
                     <MudTd DataLabel="Checkcode">@context.CheckCode</MudTd>
                     <MudTd DataLabel="Port">@context.Port</MudTd>
-                    <MudTd DataLabel="Port">
+                    <MudTd DataLabel="IFS">
                         @if (context.MultiColor)
                         {
                             @: yes
@@ -69,13 +72,16 @@
                     <MudTd DataLabel="Printer Ip">
                         <MudTextField @bind-Value="context.PrinterIP" Required />
                     </MudTd>
+                    <MudTd DataLabel="SerialNumber">
+                        <MudTextField @bind-Value="context.SerialNumber" Required />
+                    </MudTd>
                     <MudTd DataLabel="Checkcode">
                         <MudTextField @bind-Value="context.CheckCode" Required />
                     </MudTd>
                     <MudTd DataLabel="Port">
                         <MudTextField InputMode="InputMode.numeric" @bind-Value="context.Port" Required />
                     </MudTd>
-                    <MudTd DataLabel="Port">
+                    <MudTd DataLabel="IFS">
                         <MudSwitch @bind-Value="context.MultiColor" UncheckedColor="Color.Error" Color="Color.Success" />
                     </MudTd>
                     <MudTd DataLabel=""><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
@@ -171,6 +177,66 @@
             </MudTable>
         </ChildContent>
     </MudExpansionPanel>
+
+    <MudExpansionPanel>
+        <TitleContent>
+            Bambu LAN mode (Experimental) <MudChip T="string" IconColor="Color.Info" Size="Size.Small">@Config.Bambu.Count</MudChip>
+        </TitleContent>
+        <ChildContent>
+            <MudTable Items="@Config.Bambu" ReadOnly="false" RowEditCommit="OnCommit">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Bambu printers</MudText>
+                    <MudSpacer />
+                    <MudButton OnClick="AddBambuPrinter">Add</MudButton>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>Printer IP</MudTh>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Serial Number</MudTh>
+                    <MudTh>Access code</MudTh>
+                    <MudTh>Devmode</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Printer IP">@context.PrinterIP</MudTd>
+                    <MudTd DataLabel="Name">@context.PrinterName</MudTd>
+                    <MudTd DataLabel="Serial Number">••••••••</MudTd>
+                    <MudTd DataLabel="Access code">••••••••</MudTd>
+                    <MudTd DataLabel="Devmode">
+                        @if (context.DevMode)
+                        {
+                            @: yes
+                        }
+                        else
+                        {
+                            @: no
+                        }
+                    </MudTd>
+                    <MudTd ><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Class="pa-0" OnClick="() => RemovePrinter(context.Identifier)" /></MudTd>
+                </RowTemplate>
+                <RowEditingTemplate>
+                    <MudTd DataLabel="Printer IP">
+                        <MudTextField @bind-Value="context.PrinterIP" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Name">
+                        <MudTextField @bind-Value="context.PrinterName" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Serial Number">
+                        <MudTextField @bind-Value="context.SerialNunber" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Access code">
+                        <MudTextField @bind-Value="context.AccessCode" Required />
+                    </MudTd>
+                    <MudTd DataLabel="Devmode">
+                        <MudSwitch @bind-Value="context.DevMode" UncheckedColor="Color.Error" Color="Color.Success" />
+                    </MudTd>
+                </RowEditingTemplate>
+                <EditButtonContent Context="button">
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" Class="pa-0" OnClick="@button.ButtonAction" />
+                </EditButtonContent>
+            </MudTable>
+        </ChildContent>
+    </MudExpansionPanel>
     
 </MudExpansionPanels>
 
@@ -180,7 +246,7 @@
 
     bool HaveChanges = false;
     bool Indexing = false;
-    
+
     protected override async Task OnInitializedAsync()
     {
         Config = _configService.GetConfig();
@@ -217,7 +283,7 @@
             config.VisibleStateDuration = int.MaxValue;
         });
         await _PrinterIndexer.BeginIndexingAsync();
-        
+
         _snackbar.Remove(updateStatus);
         _snackbar.Add("Index Updated", Severity.Success);
         Indexing = false;
@@ -281,6 +347,25 @@
         }
     }
 
+    public async Task AddBambuPrinter()
+    {
+        var diag = await Diag.ShowAsync<CreateBambuPrinterDialog>("Add Bambu printer", new DialogOptions() { BackdropClick = false, CloseButton = false });
+
+        DialogResult? result = await diag.Result;
+
+        if (result != null)
+        {
+            if (result.Data != null)
+            {
+                BambuLabOptions options = (BambuLabOptions)result.Data;
+                Config.Bambu.Add(options);
+                _snackbar.Add("New printer Added. remember to save changes.", Severity.Success);
+                await InvokeAsync(StateHasChanged);
+                HaveChanges = true;
+            }
+        }
+    }
+
     public async Task RemovePrinter(string identifier)
     {
         if(Config.Flashforge.Any(fp => fp.Identifier == identifier))
@@ -309,6 +394,15 @@
             if (options != null)
             {
                 Config.Moonraker.Remove(options);
+            }
+        }
+        else if (Config.Bambu.Any(mr => mr.Identifier == identifier))
+        {
+            BambuLabOptions? options = Config.Bambu.Where(mr => mr.Identifier == identifier).FirstOrDefault();
+
+            if (options != null)
+            {
+                Config.Bambu.Remove(options);
             }
         }
 

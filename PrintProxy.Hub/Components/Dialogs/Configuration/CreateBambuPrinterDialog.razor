@@ -1,5 +1,4 @@
-﻿@using PrintLib.FlashForge
-
+﻿
 <MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h6">
@@ -16,11 +15,11 @@
                 }
             </MudList>
         }
+        <MudTextField @bind-Value="@model.Name" Label="Name" />
         <MudTextField @bind-Value="@model.IpAddress" Label="Printer IP" />
         <MudTextField @bind-Value="@model.SerialNumber" Label="Serial Number" />
-        <MudTextField @bind-Value="@model.CheckCode" Label="CheckCode" />
-        <MudTextField InputType="InputType.Number" @bind-Value="@model.port" Label="Port (Optional)" />
-        <MudSwitch @bind-Value="@model.Ifs" Label="IFS" UncheckedColor="Color.Error" Color="Color.Success" />
+        <MudTextField @bind-Value="@model.AcessCode" Label="Access code" />
+        <MudSwitch @bind-Value="@model.DevMode" Label="Developer mode" UncheckedColor="Color.Error" Color="Color.Success" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -35,28 +34,34 @@
 
     List<string> ValidationErrors = new();
 
-    public void Cancel() => MudDialog.Cancel();
+    BambuPrinterModel model = new();
 
-    FlashForgePrinterModel model = new FlashForgePrinterModel();
+    public void Cancel() => MudDialog.Cancel();
 
     public void CreatePrinter()
     {
-
         ValidationErrors.Clear();
 
-        @if (string.IsNullOrWhiteSpace(model.IpAddress))
+        Uri uri = default!;
+
+        if (string.IsNullOrEmpty(model.Name))
+        {
+            ValidationErrors.Add("Name is required");
+        }
+
+        if (string.IsNullOrEmpty(model.IpAddress))
         {
             ValidationErrors.Add("Ip address is required");
         }
 
-        @if (string.IsNullOrWhiteSpace(model.SerialNumber))
+        if (string.IsNullOrEmpty(model.SerialNumber))
         {
-            ValidationErrors.Add("Serial Number is required");
+            ValidationErrors.Add("Serialnumber is required");
         }
 
-        @if (string.IsNullOrWhiteSpace(model.CheckCode))
+        if (string.IsNullOrEmpty(model.AcessCode))
         {
-            ValidationErrors.Add("CheckCode is required");
+            ValidationErrors.Add("Access code is required");
         }
 
         if (ValidationErrors.Any())
@@ -65,33 +70,27 @@
             return;
         }
 
-        FlashforgeOptions options = new()
-            {
-                PrinterIP = model.IpAddress,
-                CheckCode = model.CheckCode,
-                SerialNumber = model.SerialNumber,
-                MultiColor = model.Ifs
-            };
-
-        if (model.port != 0)
+        BambuLabOptions options = new()
         {
-            options.Port = model.port;
-        }
-
+            PrinterName = model.Name,
+            PrinterIP = model.IpAddress,
+            SerialNunber = model.SerialNumber,
+            AccessCode = model.AcessCode,
+            DevMode = model.DevMode
+        };
         MudDialog.Close(options);
-
     }
 
-    private class FlashForgePrinterModel
+    private class BambuPrinterModel
     {
-        public string IpAddress { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
-        public string CheckCode { get; set; } = string.Empty;
+        public string IpAddress { get; set; } = string.Empty;
 
         public string SerialNumber { get; set; } = string.Empty;
 
-        public int port { get; set; }
+        public string AcessCode { get; set; } = string.Empty;
 
-        public bool Ifs { get; set; } = false;
+        public bool DevMode { get; set; } = false;
     };
 }

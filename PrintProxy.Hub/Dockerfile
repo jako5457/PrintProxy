@@ -26,7 +26,7 @@ RUN dotnet publish "./PrintProxy.Hub.csproj" -c $BUILD_CONFIGURATION -o /app/pub
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
-RUN apt update && apt install curl -y
+RUN apt update && apt install curl gnutls-bin -y
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "PrintProxy.Hub.dll"]
