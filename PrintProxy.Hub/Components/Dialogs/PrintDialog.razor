@@ -65,8 +65,8 @@
     public string statusText = "Starting upload.";
     bool Isloading = true;
 
-    bool CanUpload = true;
-    bool CanUploadAndPrint = true;
+    bool CanUpload = false;
+    bool CanUploadAndPrint = false;
 
     private HashSet<PrinterListItem> selectedPrinters = new HashSet<PrinterListItem>();
     List<PrinterListItem> printers = new();
@@ -105,7 +105,14 @@
     {
         selectedPrinters = items;
         CanUpload = !items.Any(i => !i.printer.CanUploadFiles());
-        CanUploadAndPrint = !items.Any(i => !i.printer.CanControl() && !i.printer.CanUploadFiles());
+        CanUploadAndPrint = !items.Any(i => !i.printer.CanControl() || !i.printer.CanUploadFiles());
+
+        if(!items.Any())
+        {
+            CanUpload = false;
+            CanUploadAndPrint = false;
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 

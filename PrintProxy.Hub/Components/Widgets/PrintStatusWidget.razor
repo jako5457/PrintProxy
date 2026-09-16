@@ -87,9 +87,9 @@
                     <AuthorizeView Roles="admin">
                         <Authorized>
                             <MudButtonGroup Class="mt-2" OverrideStyles="false" >
-                            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
-                            <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
-                            <MudButton Color="Color.Error" Variant="Variant.Filled" Disabled="DisableControls" OnClick="OnPrinterStopAsync">Stop</MudButton>
+                            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="ControlDisable" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
+                            <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="ControlDisable" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
+                            <MudButton Color="Color.Error" Variant="Variant.Filled" Disabled="ControlDisable" OnClick="OnPrinterStopAsync">Stop</MudButton>
                             </MudButtonGroup>
                         </Authorized>
                     </AuthorizeView>
@@ -119,6 +119,8 @@
     bool IsReserved = false;
 
     bool firstLoad = true;
+
+    bool ControlDisable = false;
 
     bool authorized = false;
 
@@ -152,6 +154,16 @@
 
     public async Task Update()
     {
+
+        if (DisableControls)
+        {
+            ControlDisable = true;
+        }
+        else
+        {
+            ControlDisable = !Printer.CanControl();
+        }
+
         var authstate = await auth.GetAuthenticationStateAsync();
         authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
         tags = await tagService.GetPrinterTagsAsync(Printer.GetIdentifier());
@@ -229,8 +241,6 @@
                     image = string.Empty;
                 }
             }
-
-            DisableControls = Printer.CanControl();
 
             IsBusy = false;
             await InvokeAsync(StateHasChanged);

@@ -38,35 +38,55 @@ namespace PrintLib.BambuLab
          
             await client.ConnectAsync(CreateClientOptions());
 
+            string json = "";
+
             if (client.IsConnected)
             {
-                var msg = new
-                {
-                    print = new
-                    {
-                        command = "project_file",
-                        sequence_id = 0,
-                        param = "",
-                        project_id = 0,
-                        profile_id = 0,
-                        task_id = 0,
-                        subtask_id = 0,
-                        subtask_name = "",
-                        file = fileName,
-                        url = "file:///mnt/sdcard",
-                        md5 = "",
-                        timelapse = false,
-                        bed_type = "auto",
-                        bed_levelling = true,
-                        flow_cali = true,
-                        vibration_cali = true,
-                        layer_inspect = true,
-                        ams_mapping = "",
-                        use_ams = true
-                    }
-                };
 
-                string json = JsonConvert.SerializeObject(msg);
+                if (fileName.EndsWith(".gcode"))
+                {
+                    var msg = new
+                    {
+                        print = new
+                        {
+                            command = "gcode_file",
+                            sequence_id = 0,
+                            param = fileName
+                        }
+                    };
+
+                    json = JsonConvert.SerializeObject(msg);
+                }
+                else
+                {
+                    var msg = new
+                    {
+                        print = new
+                        {
+                            command = "project_file",
+                            sequence_id = 0,
+                            param = "Metadata/plate_1.gcode",
+                            project_id = 0,
+                            profile_id = 0,
+                            task_id = 0,
+                            subtask_id = 0,
+                            subtask_name = "",
+                            file = "",
+                            url = $"ftp:///{fileName}",
+                            md5 = "",
+                            timelapse = false,
+                            bed_type = "auto",
+                            bed_levelling = true,
+                            flow_cali = true,
+                            vibration_cali = true,
+                            layer_inspect = true,
+                            ams_mapping = new int[] { 0, 1, 2, 3, -1 },
+                            use_ams = true
+                        }
+                    };
+
+                    json = JsonConvert.SerializeObject(msg);
+                }
 
                 await client.PublishStringAsync("device/" + _options.SerialNunber + "/request", json);
 
@@ -138,7 +158,7 @@ namespace PrintLib.BambuLab
                 {
                     print = new
                     {
-                        command = "start",
+                        command = "resume",
                         sequence_id = 0,
                         param = ""
                     }
