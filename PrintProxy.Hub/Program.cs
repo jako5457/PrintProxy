@@ -12,11 +12,14 @@ using PrintProxy.Hub.Services.reservation;
 using PrintProxy.Hub.Services.Tags;
 using MQTTnet.AspNetCore;
 using MQTTnet;
+using BitzArt.Blazor.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+builder.AddBlazorCookies();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -69,6 +72,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+
 
 builder.Services.AddAuthorizationCore();
 

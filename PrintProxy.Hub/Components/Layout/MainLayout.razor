@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @implements IDisposable
 @inject ISnackbar _SnackBar;
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject ICookieService _CookieService
 @inject EmergencyManager _EmergencyManager
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
@@ -25,7 +27,7 @@
                 }
             </Authorized>
         </AuthorizeView>
-        <MudToggleIconButton @bind-Toggled="_isDarkMode" Color="Color.Info" ToggledIcon="@Icons.Material.Filled.WbSunny" ToggledColor="Color.Warning" Icon="@Icons.Material.Filled.Nightlight" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
+        <MudToggleIconButton ToggledChanged="@DarkModeToggleChanged" Toggled="_isDarkMode" Color="Color.Info" ToggledIcon="@Icons.Material.Filled.WbSunny" ToggledColor="Color.Warning" Icon="@Icons.Material.Filled.Nightlight" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
@@ -48,14 +50,21 @@
     private bool _isDarkMode;
     public bool emergency = false;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
+        var cookie = await _CookieService.GetAsync("DarkMode");
+
+        if(cookie != null)
+        {
+            _isDarkMode = Convert.ToBoolean(cookie.Value);
+        }
+
         emergency = _EmergencyManager.GetState();
         _EmergencyManager.OnAlarm += Emergency;
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
@@ -65,6 +74,13 @@
             }
         }
         base.OnAfterRender(firstRender);
+    }
+
+    public async Task DarkModeToggleChanged(bool state)
+    {
+        _isDarkMode = state;
+        await InvokeAsync(StateHasChanged);
+        await _CookieService.SetAsync("DarkMode",state.ToString(), DateTimeOffset.Now.AddMonths(1), false, false, SameSiteMode.Lax);
     }
 
     public void Emergency(bool state)
