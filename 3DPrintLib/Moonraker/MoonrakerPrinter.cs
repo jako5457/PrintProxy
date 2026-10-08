@@ -76,7 +76,7 @@ namespace PrintLib.Moonraker
 
                     if (status == null)
                     {
-                        return new PrinterStatus() { Status = "Offline" };
+                        return new PrinterStatus() {Identifier = GetIdentifier() ,PrinterName = _Options.PrinterName , Status = "Offline" };
                     }
 
                     return new PrinterStatus
@@ -91,13 +91,13 @@ namespace PrintLib.Moonraker
                 }
                 else
                 {
-                    return new PrinterStatus();
+                    return new PrinterStatus() { Status = "Offline" };
                 }
             }
             catch (Exception e)
             {
                 _Logger.LogError("Failed to contact printer: " + e.Message,e);
-                return new PrinterStatus();
+                return new PrinterStatus() { Identifier = GetIdentifier(), PrinterName = _Options.PrinterName, Status = "Offline" };
             }
             
         }

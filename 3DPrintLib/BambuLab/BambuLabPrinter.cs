@@ -15,6 +15,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Channels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PrintLib.BambuLab
 {
@@ -184,52 +185,67 @@ namespace PrintLib.BambuLab
             using IMqttClient client = _MqttClientFactory.CreateMqttClient();
 
             SingleMessageClientWaiter waiter = new SingleMessageClientWaiter(client);
-            
-            await client.ConnectAsync(CreateClientOptions());
 
-            if (client.IsConnected)
+            try
             {
-                await client.SubscribeAsync("device/" + _options.SerialNunber + "/report");
+                await client.ConnectAsync(CreateClientOptions());
 
-                var PushBody = new
+                if (client.IsConnected)
                 {
-                    pushing = new
+                    await client.SubscribeAsync("device/" + _options.SerialNunber + "/report");
+
+                    var PushBody = new
                     {
-                        command = "pushall"
-                    }
-                };
-
-                string pushjson = JsonConvert.SerializeObject(PushBody);
-
-                MqttApplicationMessage Pushmsg = new MqttApplicationMessage();
-                Pushmsg.Topic = $"device/{_options.SerialNunber}";
-                Pushmsg.Payload = new System.Buffers.ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(pushjson));
-                Pushmsg.QualityOfServiceLevel = MQTTnet.Protocol.MqttQualityOfServiceLevel.ExactlyOnce;
-
-                await client.PublishAsync(Pushmsg);
-
-                var msg = await waiter.WaitForMessage();
-
-                await client.DisconnectAsync();
-
-                string jsondata = Encoding.UTF8.GetString(msg);
-
-                BambuPrintInfoRoot? data = JsonConvert.DeserializeObject<BambuPrintInfoRoot>(jsondata ?? string.Empty);
-
-                if (data != null)
-                {
-                    return new PrinterStatus()
-                    {
-                        PrinterName = _options.PrinterName,
-                        FileName = data.print.SubtaskName,
-                        Progress = data.print.PrintPercent,
-                        Status = data.print.StatusMessage,
-                        PrinterCam = data.print.IpcamInfo.RtspUrl
+                        pushing = new
+                        {
+                            command = "pushall"
+                        }
                     };
+
+                    string pushjson = JsonConvert.SerializeObject(PushBody);
+
+                    MqttApplicationMessage Pushmsg = new MqttApplicationMessage();
+                    Pushmsg.Topic = $"device/{_options.SerialNunber}";
+                    Pushmsg.Payload = new System.Buffers.ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(pushjson));
+                    Pushmsg.QualityOfServiceLevel = MQTTnet.Protocol.MqttQualityOfServiceLevel.ExactlyOnce;
+
+                    await client.PublishAsync(Pushmsg);
+
+                    var msg = await waiter.WaitForMessage();
+
+                    string jsondata = Encoding.UTF8.GetString(msg);
+
+                    BambuPrintInfoRoot? data = JsonConvert.DeserializeObject<BambuPrintInfoRoot>(jsondata ?? string.Empty);
+
+                    if (data != null)
+                    {
+                        return new PrinterStatus()
+                        {
+                            PrinterName = _options.PrinterName,
+                            FileName = data.print.SubtaskName,
+                            Progress = data.print.PrintPercent,
+                            Status = data.print.StatusMessage,
+                            PrinterCam = data.print.IpcamInfo.RtspUrl,
+                            Identifier = GetIdentifier()
+                        };
+                    }
                 }
             }
+            catch (Exception)
+            {
+                return new PrinterStatus()
+                {
+                    PrinterName = _options.PrinterName,
+                    Status = "Offline",
+                    Identifier = GetIdentifier()
+                };
+            }
+            finally
+            {
+                await client.DisconnectAsync();
+            }
 
-            return new PrinterStatus() { PrinterName = _options.PrinterName };
+            return new PrinterStatus() { Identifier = GetIdentifier(), PrinterName = _options.PrinterName, Status = "Offline" };
         }
 
         public async Task UploadAsync(string FilePath)
