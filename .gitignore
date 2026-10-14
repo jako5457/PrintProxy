@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /PrintProxy.Hub/PrinterConfig.json
 
 GcodeFiles/
+/PrintProxy.Hub/ServerConfig.json

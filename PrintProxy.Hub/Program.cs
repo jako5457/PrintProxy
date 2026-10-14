@@ -41,6 +41,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddScoped<IPrinterThumbnailService,PrinterThumbnailService>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
+builder.Services.AddScoped<IServerOptionsService, ServerOptionsService>();
+
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
 builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
 builder.Services.AddScoped<ITagService, TagService>();

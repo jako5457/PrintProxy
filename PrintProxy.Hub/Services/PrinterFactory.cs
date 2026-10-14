@@ -12,7 +12,7 @@ namespace PrintProxy.Hub.Services
     public class PrinterFactory : IPrinterFactory
     {
 
-        private readonly MainConfigEntry _config;
+        private readonly PrinterConfigEntry _config;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _serviceProvider;
         private readonly MqttClientFactory _mqttClientFactory;
