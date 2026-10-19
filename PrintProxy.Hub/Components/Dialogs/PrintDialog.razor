@@ -1,4 +1,5 @@
-﻿@inject IPrinterFactory _PrinterFactory
+﻿@using PrintLib.Extensions;
+@inject IPrinterFactory _PrinterFactory
 <MudContainer>
     @if (IsWorking)
     {
@@ -84,8 +85,12 @@
 
         foreach (var printer in printerlist)
         {
-            var status = await printer.GetStatusAsync();
-            statuses.Add(status);
+            bool reachable = await printer.PingPrinterAsync();
+            if(reachable)
+            {
+                var status = await printer.GetStatusAsync();
+                statuses.Add(status);
+            }
         }
 
         printers = printerlist.Zip(statuses).Select(p => new PrinterListItem() { printer = p.First , status = p.Second }).ToList();

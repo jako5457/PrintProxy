@@ -11,6 +11,7 @@ using PrintLib;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Net;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
@@ -308,5 +309,20 @@ namespace PrintLib.BambuLab
         public bool CanControl() => _options.DevMode;
 
         public bool CanUploadFiles() => true;
+
+        public async Task<IPAddress?> GetIpAddressAsync()
+        {
+            IPAddress? address = null;
+            if (IPAddress.TryParse(_options.PrinterIP, out address))
+            {
+                return address;
+            }
+            else
+            {
+                var addresses = await Dns.GetHostAddressesAsync(_options.PrinterIP);
+
+                return addresses.FirstOrDefault();
+            }
+        }
     }
 }

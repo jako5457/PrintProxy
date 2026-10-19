@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Net;
 
 namespace PrintLib
 {
@@ -70,5 +71,11 @@ namespace PrintLib
         /// </summary>
         /// <returns></returns>
         public bool CanUploadFiles();
+
+        /// <summary>
+        /// Returns the Physical Ip Address of the printer.
+        /// </summary>
+        /// <returns>The ip address. Returns null if it do not have one</returns>
+        public Task<IPAddress?> GetIpAddressAsync();
     }
 }

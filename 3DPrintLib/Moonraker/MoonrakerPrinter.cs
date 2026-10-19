@@ -67,7 +67,7 @@ namespace PrintLib.Moonraker
             try
             {
                 var response = await client.GetAsync("/printer/objects/query?display_status&print_stats");
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     string data = await response.Content.ReadAsStringAsync();
@@ -76,7 +76,7 @@ namespace PrintLib.Moonraker
 
                     if (status == null)
                     {
-                        return new PrinterStatus() {Identifier = GetIdentifier() ,PrinterName = _Options.PrinterName , Status = "Offline" };
+                        return new PrinterStatus() { Identifier = GetIdentifier(), PrinterName = _Options.PrinterName, Status = "Offline" };
                     }
 
                     return new PrinterStatus
@@ -86,7 +86,7 @@ namespace PrintLib.Moonraker
                         Status = status.result.status.print_stats.state,
                         PrinterName = _Options.PrinterName,
                         Progress = Convert.ToInt32(status.result.status.display_status.progress * 100),
-                        FileThumbnail = $"{_Options.Endpoint}/server/files/gcodes/.thumbs/{Uri.EscapeDataString(status.result.status.print_stats.filename.Replace(".gcode",""))}-300x300.png"
+                        FileThumbnail = $"{_Options.Endpoint}/server/files/gcodes/.thumbs/{Uri.EscapeDataString(status.result.status.print_stats.filename.Replace(".gcode", ""))}-300x300.png"
                     };
                 }
                 else
@@ -96,10 +96,10 @@ namespace PrintLib.Moonraker
             }
             catch (Exception e)
             {
-                _Logger.LogError("Failed to contact printer: " + e.Message,e);
+                _Logger.LogError("Failed to contact printer: " + e.Message, e);
                 return new PrinterStatus() { Identifier = GetIdentifier(), PrinterName = _Options.PrinterName, Status = "Offline" };
             }
-            
+
         }
 
         public async Task PauseAsync()
@@ -210,5 +210,25 @@ namespace PrintLib.Moonraker
         public bool CanControl() => true;
         public bool CanUploadFiles() => true;
 
+
+
+        public async Task<IPAddress?> GetIpAddressAsync()
+        {
+            IPAddress? address = null;
+
+            string addr = _Options.Endpoint.Replace("http://", "").Replace("/", "");
+
+            if (IPAddress.TryParse(addr, out address))
+            {
+                return address;
+            }
+
+            else
+            {
+                var addresses = await Dns.GetHostAddressesAsync(addr);
+
+                return addresses.FirstOrDefault();
+            }
+        }
     }
 }

@@ -1,20 +1,21 @@
-﻿using PrintLib.FlashForge.FlashDtos;
-using PrintLib.FlashForge.FlashDtos.Commands;
+﻿using _3DPrintLib.FlashForge.FlashDtos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using PrintLib;
+using PrintLib.FlashForge.FlashDtos;
+using PrintLib.FlashForge.FlashDtos.Commands;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Security.Cryptography;
-using _3DPrintLib.FlashForge.FlashDtos;
 
 namespace PrintLib.FlashForge
 {
@@ -300,5 +301,20 @@ namespace PrintLib.FlashForge
             return client;
         }
 
+        public async Task<IPAddress?> GetIpAddressAsync()
+        {
+            IPAddress? address = null;
+            if (IPAddress.TryParse(_Options.PrinterIP, out address))
+            {
+                return address;
+            }
+
+            else
+            {
+                var addresses = await Dns.GetHostAddressesAsync(_Options.PrinterIP);
+
+                return addresses.FirstOrDefault();
+            }
+        }
     }
 }
