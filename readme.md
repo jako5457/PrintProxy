@@ -10,15 +10,18 @@ A system for monitoring and maintaining 3D printers
 - [X] Flashforge printers (New API)
 - [X] Octoprint
 - [X] Moonraker
+- [X] Bambu lab (LAN mode)
 - [ ] Prusa Link
-- [ ] Bambu lab (LAN mode)
 
 > More contributions of other printers are welcome
+
+### Features
+- [X] Printer Reservation
+- [X] Send files and start a print on printer (Admin only for now) 
 
 ### Planned features in the future
 - Print Queue
 - Printer Grouping
-- Printer Reservation
 - Http API for using in other applications
     - Direct upload from a slicer ( _Orcaslicer in mind_ )
 
@@ -43,6 +46,15 @@ A system for monitoring and maintaining 3D printers
         {
             "printer_name": "<printer name shown in UI>",
             "endpoint": "<host address for Moonraker>"
+        }
+    ],
+    "bambu":[
+        {
+            "Printer_name": "<Name in ui>",
+            "Printer_ip": "<Printer IP>",
+            "Access_code": "<Printer Access code>",
+            "Serial_number": "<The printer serial number>",
+            "Developer_mode": false <- Set true if developer mode is enabled
         }
     ]
 }

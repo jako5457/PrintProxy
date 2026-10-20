@@ -23,10 +23,9 @@
 @code {
 
     public EventDelegator UpdateDelegator = new EventDelegator(); 
-    
+
     bool isbusy = false;
     System.Timers.Timer timer = new(10000);
-    
     
     public IEnumerable<IPrinter> Printers = new List<IPrinter>();
 

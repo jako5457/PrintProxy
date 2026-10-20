@@ -12,6 +12,9 @@
 
 
   <ItemGroup>
+    <PackageReference Include="BitzArt.Blazor.Cookies" Version="1.5.2" />
+    <PackageReference Include="BitzArt.Blazor.Cookies.Client" Version="1.5.2" />
+    <PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.5.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.9" />
@@ -26,6 +29,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference Include="MQTTnet.AspNetCore" Version="5.2.0.1603" />
     <PackageReference Include="MudBlazor" Version="9.*" />
     <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="4.*" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />

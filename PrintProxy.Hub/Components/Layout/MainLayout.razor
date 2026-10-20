@@ -1,7 +1,10 @@
 ﻿@inherits LayoutComponentBase
 @implements IDisposable
 @inject ISnackbar _SnackBar;
+@inject ProtectedLocalStorage ProtectedLocalStore
+@inject ICookieService _CookieService
 @inject EmergencyManager _EmergencyManager
+@inject IServerOptionsService ServerOptionsService
 
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
 <MudPopoverProvider />
@@ -10,8 +13,8 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudStaticNavDrawerToggle DrawerId="nav-drawer" @bind-Open="_drawerOpen" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" />
-        <MudImage Src="./images/printproxy_logo.svg" Elevation="0" Height="50" />
-        <MudText Typo="Typo.h5" Class="ml-3">PrintProxy</MudText>
+        <MudImage Src="@BrandImage" Elevation="0" Height="50" />
+        <MudText Typo="Typo.h5" Class="ml-3">@BrandName</MudText>
         <MudSpacer />
         <AuthorizeView Roles="admin">
             <Authorized>
@@ -25,7 +28,7 @@
                 }
             </Authorized>
         </AuthorizeView>
-        <MudToggleIconButton @bind-Toggled="_isDarkMode" Color="Color.Info" ToggledIcon="@Icons.Material.Filled.WbSunny" ToggledColor="Color.Warning" Icon="@Icons.Material.Filled.Nightlight" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
+        <MudToggleIconButton ToggledChanged="@DarkModeToggleChanged" Toggled="_isDarkMode" Color="Color.Info" ToggledIcon="@Icons.Material.Filled.WbSunny" ToggledColor="Color.Warning" Icon="@Icons.Material.Filled.Nightlight" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
@@ -48,14 +51,29 @@
     private bool _isDarkMode;
     public bool emergency = false;
 
-    protected override Task OnInitializedAsync()
+    public string BrandName = "";
+    public string BrandImage = "";
+
+    protected override async Task OnInitializedAsync()
     {
+        var cookie = await _CookieService.GetAsync("DarkMode");
+
+        if(cookie != null)
+        {
+            _isDarkMode = Convert.ToBoolean(cookie.Value);
+        }
+
+        var options = ServerOptionsService.GetOptions();
+
+        BrandName = options.BrandText;
+        BrandImage = options.BrandImage;
+
         emergency = _EmergencyManager.GetState();
         _EmergencyManager.OnAlarm += Emergency;
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
@@ -65,6 +83,13 @@
             }
         }
         base.OnAfterRender(firstRender);
+    }
+
+    public async Task DarkModeToggleChanged(bool state)
+    {
+        _isDarkMode = state;
+        await InvokeAsync(StateHasChanged);
+        await _CookieService.SetAsync("DarkMode",state.ToString(), DateTimeOffset.Now.AddMonths(1), false, false, SameSiteMode.Lax);
     }
 
     public void Emergency(bool state)
