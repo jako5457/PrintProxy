@@ -333,9 +333,16 @@ namespace PrintLib.FlashForge
 
             else
             {
-                var addresses = await Dns.GetHostAddressesAsync(_Options.PrinterIP);
+                try
+                {
+                    var addresses = await Dns.GetHostAddressesAsync(_Options.PrinterIP);
 
-                return addresses.FirstOrDefault();
+                    return addresses.FirstOrDefault();
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             }
         }
     }

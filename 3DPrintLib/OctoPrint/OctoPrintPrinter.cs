@@ -186,9 +186,17 @@ namespace PrintLib.OctoPrint
                 
             else
             {
-                var addresses = await Dns.GetHostAddressesAsync(_options.EndPoint.Host);
+                try
+                {
+                    var addresses = await Dns.GetHostAddressesAsync(_options.EndPoint.Host);
 
-                return addresses.FirstOrDefault();
+                    return addresses.FirstOrDefault();
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+               
             }
         }
 

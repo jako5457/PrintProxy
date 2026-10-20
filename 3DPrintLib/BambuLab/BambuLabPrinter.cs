@@ -319,9 +319,16 @@ namespace PrintLib.BambuLab
             }
             else
             {
-                var addresses = await Dns.GetHostAddressesAsync(_options.PrinterIP);
+                try
+                {
+                    var addresses = await Dns.GetHostAddressesAsync(_options.PrinterIP);
 
-                return addresses.FirstOrDefault();
+                    return addresses.FirstOrDefault();
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             }
         }
     }

@@ -218,6 +218,11 @@ namespace PrintLib.Moonraker
 
             string addr = _Options.Endpoint.Replace("http://", "").Replace("/", "");
 
+            if (addr.Contains(":"))
+            {
+                addr = addr.Split(":").First();
+            }
+
             if (IPAddress.TryParse(addr, out address))
             {
                 return address;
@@ -225,9 +230,15 @@ namespace PrintLib.Moonraker
 
             else
             {
-                var addresses = await Dns.GetHostAddressesAsync(addr);
-
-                return addresses.FirstOrDefault();
+                try
+                {
+                    var addresses = await Dns.GetHostAddressesAsync(addr);
+                    return addresses.FirstOrDefault();
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             }
         }
     }
