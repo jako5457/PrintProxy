@@ -2,6 +2,7 @@
 using PrintLib.OctoPrint.OctoDtos;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -15,7 +16,7 @@ namespace PrintLib.OctoPrint
         private OctoPrintOptions _options;
         private readonly IHttpClientFactory _clientFactory;
 
-        public OctoPrintPrinter(IHttpClientFactory clientFactory,OctoPrintOptions options)
+        public OctoPrintPrinter(IHttpClientFactory clientFactory, OctoPrintOptions options)
         {
             _clientFactory = clientFactory;
             _options = options;
@@ -25,7 +26,7 @@ namespace PrintLib.OctoPrint
         {
             HttpClient client = _clientFactory.CreateAuthorizedClient(_options);
 
-            var response = await client.SendOctoprintJobCommandAsync(new OctoprintActionCommand("pause","resume"));
+            var response = await client.SendOctoprintJobCommandAsync(new OctoprintActionCommand("pause", "resume"));
 
             response.EnsureSuccessStatusCode();
         }
@@ -100,14 +101,14 @@ namespace PrintLib.OctoPrint
             {
                 return new PrinterStatus() { Identifier = GetIdentifier(), Status = "offline" };
             }
-            
+
         }
 
         public async Task PauseAsync()
         {
             HttpClient client = _clientFactory.CreateAuthorizedClient(_options);
 
-            var response = await client.SendOctoprintJobCommandAsync(new OctoprintActionCommand("pause","pause"));
+            var response = await client.SendOctoprintJobCommandAsync(new OctoprintActionCommand("pause", "pause"));
 
             response.EnsureSuccessStatusCode();
         }
@@ -116,7 +117,7 @@ namespace PrintLib.OctoPrint
         {
             HttpClient client = _clientFactory.CreateAuthorizedClient(_options);
 
-            var CommandResponse = await client.SendOctoprintJobCommandAsync(new OctoprintFileCommand("select",fileName,true));
+            var CommandResponse = await client.SendOctoprintJobCommandAsync(new OctoprintFileCommand("select", fileName, true));
 
             CommandResponse.EnsureSuccessStatusCode();
         }
@@ -138,16 +139,16 @@ namespace PrintLib.OctoPrint
             FileStream fileStream = new FileStream(FilePath, FileMode.Open);
 
             var formData = new MultipartFormDataContent();
-            formData.Add(new StreamContent(fileStream),"file",file.Name);
+            formData.Add(new StreamContent(fileStream), "file", file.Name);
 
             var response = await client.PostAsync("/api/files/local", formData);
 
             response.EnsureSuccessStatusCode();
         }
 
-        private int CalculateProgress(long time,long timeLeft)
+        private int CalculateProgress(long time, long timeLeft)
         {
-            
+
             if (timeLeft == 0)
             {
                 return 0;
@@ -155,7 +156,7 @@ namespace PrintLib.OctoPrint
 
             double proc = Convert.ToDouble(time) / 100;
 
-            int procent = Convert.ToInt32((proc - 0.1 ) * timeLeft);
+            int procent = Convert.ToInt32((proc - 0.1) * timeLeft);
 
             return procent;
         }
@@ -170,5 +171,26 @@ namespace PrintLib.OctoPrint
 
             return Convert.ToBase64String(identifier);
         }
+
+        public bool CanControl() => true;
+
+        public bool CanUploadFiles() => true;
+
+        public async Task<IPAddress?> GetIpAddressAsync()
+        {
+            IPAddress? address = null;
+            if (IPAddress.TryParse(_options.EndPoint.Host, out address))
+            {
+                return address;
+            }
+                
+            else
+            {
+                var addresses = await Dns.GetHostAddressesAsync(_options.EndPoint.Host);
+
+                return addresses.FirstOrDefault();
+            }
+        }
+
     }
 }

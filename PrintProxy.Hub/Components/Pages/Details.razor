@@ -41,9 +41,9 @@
                     </MudPaper>
 
                     <MudButtonGroup Class="mt-3" OverrideStyles="false">
-                        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="() => printer.ContinueAsync()">Continue</MudButton>
-                        <MudButton Color="Color.Warning" Variant="Variant.Filled" OnClick="() => printer.PauseAsync()">Pause</MudButton>
-                        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="OnPrinterStopAsync">Stop</MudButton>
+                        <MudButton Color="Color.Primary" Disabled="ControlsDisabled" Variant="Variant.Filled" OnClick="() => printer.ContinueAsync()">Continue</MudButton>
+                        <MudButton Color="Color.Warning" Disabled="ControlsDisabled" Variant="Variant.Filled" OnClick="() => printer.PauseAsync()">Pause</MudButton>
+                        <MudButton Color="Color.Error" Disabled="ControlsDisabled" Variant="Variant.Filled" OnClick="OnPrinterStopAsync">Stop</MudButton>
                     </MudButtonGroup>
                 </MudItem>
             </MudGrid>
@@ -65,11 +65,15 @@ else
     public PrinterStatus status = new PrinterStatus();
     public string image = string.Empty;
 
+    public bool ControlsDisabled = false;
+
     protected override async Task OnInitializedAsync()
     {
         printer = printerFactory.GetPrinterByIdentifier(id) ?? null!;
 
         status = await printer.GetStatusAsync();
+
+        ControlsDisabled = printer.CanControl();
 
         image = await thumbnailService.GetThumbnail(status.FileThumbnail);
 

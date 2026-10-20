@@ -20,6 +20,7 @@
         <MudTextField @bind-Value="@model.SerialNumber" Label="Serial Number" />
         <MudTextField @bind-Value="@model.CheckCode" Label="CheckCode" />
         <MudTextField InputType="InputType.Number" @bind-Value="@model.port" Label="Port (Optional)" />
+        <MudSwitch @bind-Value="@model.Ifs" Label="IFS" UncheckedColor="Color.Error" Color="Color.Success" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -68,7 +69,8 @@
             {
                 PrinterIP = model.IpAddress,
                 CheckCode = model.CheckCode,
-                SerialNumber = model.SerialNumber
+                SerialNumber = model.SerialNumber,
+                MultiColor = model.Ifs
             };
 
         if (model.port != 0)
@@ -89,5 +91,7 @@
         public string SerialNumber { get; set; } = string.Empty;
 
         public int port { get; set; }
+
+        public bool Ifs { get; set; } = false;
     };
 }

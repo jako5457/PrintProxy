@@ -7,10 +7,10 @@
 @inject NavigationManager nav;
 
 <PageTitle>Printer overview</PageTitle>
-<MudButton Variant="Variant.Filled" OnClick="ReloadAsync" Color="Color.Primary" Style="margin-top:2px;">Refresh</MudButton>
+<MudIconButton Variant="Variant.Filled" Icon="@Icons.Material.Filled.Sync" OnClick="ReloadAsync" Color="Color.Primary" Style="margin-top:12px;"/>
 
 <CascadingValue Value="UpdateDelegator">
-    <MudGrid Style="margin-top:2px;">
+    <MudGrid Style="padding-top:10px">
         @foreach (var printer in Printers)
         {
             <PrintStatusWidget Printer="printer" DisableControls="Emergency" IsKiosk="false" />

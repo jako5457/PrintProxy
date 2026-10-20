@@ -87,9 +87,9 @@
                     <AuthorizeView Roles="admin">
                         <Authorized>
                             <MudButtonGroup Class="mt-2" OverrideStyles="false" >
-                                <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
-                            <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="DisableControls" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
-                            <MudButton Color="Color.Error" Variant="Variant.Filled" Disabled="DisableControls" OnClick="OnPrinterStopAsync">Stop</MudButton>
+                            <MudButton Color="Color.Primary" Variant="Variant.Filled" Disabled="ControlDisable" OnClick="() => Printer.ContinueAsync()">Continue</MudButton>
+                            <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="ControlDisable" OnClick="() => Printer.PauseAsync()">Pause</MudButton>
+                            <MudButton Color="Color.Error" Variant="Variant.Filled" Disabled="ControlDisable" OnClick="OnPrinterStopAsync">Stop</MudButton>
                             </MudButtonGroup>
                         </Authorized>
                     </AuthorizeView>
@@ -103,11 +103,11 @@
 
     [CascadingParameter]
     public EventDelegator? OnUpdate { get; set; }
-    
+
     PrinterStatus status = new PrinterStatus();
 
     ReservationInfoDto Reservation = null!;
-    
+
     List<string> tags = new List<string>();
 
     string image = string.Empty;
@@ -117,8 +117,10 @@
     bool updated = false;
 
     bool IsReserved = false;
-    
+
     bool firstLoad = true;
+
+    bool ControlDisable = false;
 
     bool authorized = false;
 
@@ -129,7 +131,7 @@
 
     [Parameter]
     public bool DisableControls { get; set; } = false;
-    
+
     [Parameter]
     public bool ShowTags { get; set; } = false;
 
@@ -149,23 +151,33 @@
     {
         await InvokeAsync(Update);
     }
-    
+
     public async Task Update()
     {
+
+        if (DisableControls)
+        {
+            ControlDisable = true;
+        }
+        else
+        {
+            ControlDisable = !Printer.CanControl();
+        }
+
         var authstate = await auth.GetAuthenticationStateAsync();
         authorized = authstate?.User?.Identity?.IsAuthenticated ?? false;
         tags = await tagService.GetPrinterTagsAsync(Printer.GetIdentifier());
-        
+
         var prModel = await indexService.GetPrinterByIdentifierAsync(Printer.GetIdentifier());
         Reservation = await ReservationService.GetCurrentPrinterReservationAsync(prModel.PrinterId);
-        
+
         IsBusy = true;
         await InvokeAsync(StateHasChanged);
 
         string identifier = Printer.GetIdentifier();
-        
+
         var cached = await _cache.GetStringAsync(identifier);
-        
+
         if (cached != null)
         {
             if (firstLoad)

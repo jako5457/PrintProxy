@@ -10,6 +10,9 @@ using PrintProxy.Hub.Extensions;
 using PrintProxy.Hub.Services.Files;
 using PrintProxy.Hub.Services.reservation;
 using PrintProxy.Hub.Services.Tags;
+using MQTTnet.AspNetCore;
+using MQTTnet;
+using BitzArt.Blazor.Cookies;
 using Serilog.AspNetCore;
 using Serilog;
 
@@ -23,6 +26,8 @@ builder.Services.AddSerilog();
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+builder.AddBlazorCookies();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -44,11 +49,14 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddScoped<IPrinterThumbnailService,PrinterThumbnailService>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
+builder.Services.AddScoped<IServerOptionsService, ServerOptionsService>();
+
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
 builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddSingleton<EmergencyManager>();
+builder.Services.AddSingleton<MqttClientFactory>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddAuthentication(options =>
@@ -74,6 +82,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+
 
 builder.Services.AddAuthorizationCore();
 

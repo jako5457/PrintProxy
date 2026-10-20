@@ -14,6 +14,7 @@ namespace PrintProxy.Hub.Services
         private const string OctoPrintTagName = "OctoPrint";
         private const string FlashForgeTagName = "Flashforge";
         private const string MoonRakerTagName = "Moonraker";
+        private const string BambuTagName = "Bambu";
 
         public async Task BeginIndexingAsync()
         {
@@ -44,6 +45,11 @@ namespace PrintProxy.Hub.Services
             if (configuration.Moonraker.Any())
             {
                 await tagService.CreateTagAsync(MoonRakerTagName, true);
+            }
+
+            if (configuration.Bambu.Any())
+            {
+                await tagService.CreateTagAsync(BambuTagName, true);
             }
 
             foreach (var Octoprinter in configuration.Octoprint)
@@ -229,6 +235,73 @@ namespace PrintProxy.Hub.Services
                             printer.PrinterName = information.PrinterName;
                         }
                     }
+                }
+            }
+
+            foreach (var bambu in configuration.Bambu)
+            {
+                if (!await context.Printers.AnyAsync(p => p.PrinterIdentifier == bambu.Identifier))
+                {
+                    Tag? BambuTag = await context.Tags
+                                                 .Where(t => t.TagName == BambuTagName)
+                                                 .FirstOrDefaultAsync();
+
+                    if (BambuTag == null)
+                    {
+                        break;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(bambu.Identifier);
+
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
+
+                    var information = await printerconn.GetStatusAsync();
+
+                    if (printerconn != null)
+                    {
+                        var status = await printerconn.GetStatusAsync();
+
+                        Printer printer = new Printer()
+                        {
+                            PrinterName = status.PrinterName,
+                            PrinterIdentifier = bambu.Identifier,
+                            Tags = new List<Tag>() { BambuTag }
+                        };
+
+                        context.Printers.Add(printer);
+                    }
+
+                }
+                else
+                {
+                    var printer = await context.Printers.Where(p => p.PrinterIdentifier == bambu.Identifier).FirstOrDefaultAsync();
+
+                    if (printer == null)
+                    {
+                        continue;
+                    }
+
+                    var printerconn = printerFactory.GetPrinterByIdentifier(bambu.Identifier);
+
+                    if (printerconn == null)
+                    {
+                        continue;
+                    }
+
+                    var information = await printerconn.GetStatusAsync();
+
+                    if (printer.PrinterName != information.PrinterName)
+                    {
+                        if (string.IsNullOrWhiteSpace(printer.PrinterName))
+                        {
+                            printer.PrinterName = information.PrinterName;
+                        }
+                    }
+
+
                 }
             }
 

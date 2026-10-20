@@ -12,7 +12,7 @@ namespace PrintProxy.Hub.Services
             ReferenceLoopHandling = ReferenceLoopHandling.Serialize
         };
 
-        public MainConfigEntry GetConfig()
+        public PrinterConfigEntry GetConfig()
         {
             string? location = _Config.GetValue<string?>("PRINTER_CONFIG", null);
 
@@ -25,7 +25,7 @@ namespace PrintProxy.Hub.Services
 
             if (!File.Exists(location))
             {
-                var conf = new MainConfigEntry();
+                var conf = new PrinterConfigEntry();
 
                 var data = JsonConvert.SerializeObject(conf, SerializerSettings);
 
@@ -38,10 +38,10 @@ namespace PrintProxy.Hub.Services
 
             string json = File.ReadAllText(location);
 
-            return JsonConvert.DeserializeObject<MainConfigEntry>(json, SerializerSettings) ?? new MainConfigEntry();
+            return JsonConvert.DeserializeObject<PrinterConfigEntry>(json, SerializerSettings) ?? new PrinterConfigEntry();
         }
 
-        public void SaveConfig(MainConfigEntry config)
+        public void SaveConfig(PrinterConfigEntry config)
         {
             string? location = _Config.GetValue<string?>("PRINTER_CONFIG", null);
 

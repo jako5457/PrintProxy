@@ -1,11 +1,12 @@
-﻿using PrintLib.FlashForge;
+﻿using PrintLib.BambuLab;
+using PrintLib.FlashForge;
 using PrintLib.Moonraker;
 using PrintLib.OctoPrint;
 using System.Text.Json.Serialization;
 
 namespace PrintProxy.Hub.Services.Configs
 {
-    public class MainConfigEntry
+    public class PrinterConfigEntry
     {
         [JsonPropertyName("octoprint")]
         public List<OctoPrintOptions> Octoprint { get; set; } = new();
@@ -13,8 +14,10 @@ namespace PrintProxy.Hub.Services.Configs
         [JsonPropertyName("flashforge")]
         public List<FlashforgeOptions> Flashforge { get; set; } = new();
 
-
         [JsonPropertyName("moonraker")]
         public List<MoonrakerOptions> Moonraker { get; set; } = new();
+
+        [JsonPropertyName("bambu")]
+        public List<BambuLabOptions> Bambu { get; set; } = new();
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Net;
 
 namespace PrintLib
 {
@@ -52,6 +53,29 @@ namespace PrintLib
         /// <returns></returns>
         public Task<JobStatus> GetJobStatusAsync();
 
+        /// <summary>
+        /// Gives you a unique printer identifier
+        /// </summary>
+        /// <returns>A cryptographic identifier in base64</returns>
         public string GetIdentifier();
+
+        /// <summary>
+        /// Cheks if the printer can be controlled by commands.
+        /// Example: Bambu lab printers with developer mode disabled will return False.
+        /// </summary>
+        /// <returns>True if it can be controlled</returns>
+        public bool CanControl();
+
+        /// <summary>
+        /// Checks if ypu can upload files to the printer
+        /// </summary>
+        /// <returns></returns>
+        public bool CanUploadFiles();
+
+        /// <summary>
+        /// Returns the Physical Ip Address of the printer.
+        /// </summary>
+        /// <returns>The ip address. Returns null if it do not have one</returns>
+        public Task<IPAddress?> GetIpAddressAsync();
     }
 }
