@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Microsoft.IdentityModel.Tokens;
 
 namespace PrintProxy.Hub.Extensions;
 

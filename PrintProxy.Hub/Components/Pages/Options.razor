@@ -1,0 +1,51 @@
+﻿@page "/options"
+@attribute [Authorize(Roles = "admin")]
+@inject IServerOptionsService _ServerOptions
+@inject ISnackbar _SnackBar
+
+<MudToolBar>
+    <MudText Typo="Typo.h4" Class="mt-3">Server options</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="Save" >Save</MudButton>
+</MudToolBar>
+
+<MudExpansionPanels>
+
+    <MudExpansionPanel>
+        <TitleContent>Brand</TitleContent>
+        <ChildContent>
+            <MudTextField T="string" Label="Name"  @bind-Value="Config.BrandText" />
+        </ChildContent>
+    </MudExpansionPanel>
+
+</MudExpansionPanels>
+
+@code {
+    ServerOptionsEntry Config = new ServerOptionsEntry();
+
+    bool HaveChanges = false;
+    bool Indexing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Config = _ServerOptions.GetOptions();
+
+        await base.OnInitializedAsync();
+    }
+
+    public async void OnCommit(object _)
+    {
+        HaveChanges = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task Save()
+    {
+        _ServerOptions.SaveConfig(Config);
+        _SnackBar.Add("Options updated", Severity.Success);
+
+        HaveChanges = false;
+        await InvokeAsync(StateHasChanged);
+    }
+    
+}
