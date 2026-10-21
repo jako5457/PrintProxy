@@ -365,3 +365,4 @@ FodyWeavers.xsd
 
 GcodeFiles/
 /PrintProxy.Hub/ServerConfig.json
+/PrintProxy.Hub/wwwroot/Downloads

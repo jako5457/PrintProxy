@@ -1,0 +1,23 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudText>Download file from link</MudText>
+
+        <MudTextField T="string" Label="Image" @bind-Value="link" />
+
+    </DialogContent>
+    <DialogActions>        
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Use Image</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    public string link { get; set; } = "";
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(link));
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -43,7 +43,7 @@ namespace PrintProxy.Hub.Services
 
         public void SaveConfig(ServerOptionsEntry options)
         {
-            string? location = _Config.GetValue<string?>("PRINTER_CONFIG", null);
+            string? location = _Config.GetValue<string?>("SERVER_OPTIONS", null);
 
             if (location == null)
             {

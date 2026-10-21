@@ -2,6 +2,8 @@
 @attribute [Authorize(Roles = "admin")]
 @inject IServerOptionsService _ServerOptions
 @inject ISnackbar _SnackBar
+@inject IDialogService _DialogService
+@inject ISiteRootService _SiteRootService
 
 <MudToolBar>
     <MudText Typo="Typo.h4" Class="mt-3">Server options</MudText>
@@ -15,6 +17,11 @@
         <TitleContent>Brand</TitleContent>
         <ChildContent>
             <MudTextField T="string" Label="Name"  @bind-Value="Config.BrandText" />
+            <MudTextField T="string" Label="Image"  @bind-Value="Config.BrandImage" Disabled="true" />
+            <MudButtonGroup>
+                <MudButton OnClick="UploadImage">Upload image</MudButton>
+                <MudButton OnClick="SetImage">Get from Url</MudButton>
+            </MudButtonGroup>
         </ChildContent>
     </MudExpansionPanel>
 
@@ -47,5 +54,57 @@
         HaveChanges = false;
         await InvokeAsync(StateHasChanged);
     }
-    
+
+    public async Task SetImage()
+    {
+        var dialog = await _DialogService.ShowAsync<DownloadLinkDialog>();
+
+        var result = await dialog.Result;
+
+        if(result?.Canceled ?? true)
+        {
+            return;
+        }
+
+        string link = result?.Data?.ToString() ?? string.Empty;
+
+        if(string.IsNullOrWhiteSpace(link))
+        {
+            _SnackBar.Add("Download Error", severity: Severity.Error);
+        }
+
+        if(!Directory.Exists("wwwroot/Downloads"))
+        {
+            Directory.CreateDirectory("wwwroot/Downloads");
+        }
+
+        Config.BrandImage = await _SiteRootService.DownloadFileAsync(link, "Downloads");
+
+        await Save();
+
+    }
+
+    public async Task UploadImage()
+    {
+        var dialog = await _DialogService.ShowAsync<RootFileUploadDialog>();
+
+        var result = await dialog.Result;
+
+        if (result?.Canceled ?? true)
+        {
+            return;
+        }
+
+        string path = result?.Data?.ToString() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            _SnackBar.Add("Upload Error", severity: Severity.Error);
+        }
+
+        Config.BrandImage = path;
+
+        await Save();
+    }
+
 }
