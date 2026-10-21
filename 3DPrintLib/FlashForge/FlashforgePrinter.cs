@@ -1,20 +1,21 @@
-﻿using PrintLib.FlashForge.FlashDtos;
-using PrintLib.FlashForge.FlashDtos.Commands;
+﻿using _3DPrintLib.FlashForge.FlashDtos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using PrintLib;
+using PrintLib.FlashForge.FlashDtos;
+using PrintLib.FlashForge.FlashDtos.Commands;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Security.Cryptography;
-using _3DPrintLib.FlashForge.FlashDtos;
 
 namespace PrintLib.FlashForge
 {
@@ -200,14 +201,34 @@ namespace PrintLib.FlashForge
                     request = _Options.SetupRequest<FlashForgePrintRequest>();
                 }
 
+                
+
                 request.FileName = fileName;
 
-                var result = await client.PostAsJsonAsync("/printGcode", request);
+                bool retry = true;
+                int retries = 0;
+                do
+                {
+                    var result = await client.PostAsJsonAsync("/printGcode", request);
 
-                result.EnsureSuccessStatusCode();
+                    result.EnsureSuccessStatusCode();
 
-                string json = await result.Content.ReadAsStringAsync();
-                _Logger.LogDebug(json);
+                    string json = await result.Content.ReadAsStringAsync();
+
+                    if (json.ToLower().Contains("success"))
+                    {
+                        retry = false;
+                    }
+                    else
+                    {
+                        retries++;
+                        if (retries >= 10)
+                        {
+                            throw new Exception("Retries exeeded..");
+                        }
+                    }
+                    _Logger.LogInformation(json);
+                } while (retry);
             }
             catch (Exception e)
             {
@@ -235,6 +256,8 @@ namespace PrintLib.FlashForge
 
                 var result = await client.SendAsync(msg);
 
+                string jsonresponse = await result.Content.ReadAsStringAsync();
+                
                 result.EnsureSuccessStatusCode();
             }
             catch (Exception e)
@@ -300,5 +323,27 @@ namespace PrintLib.FlashForge
             return client;
         }
 
+        public async Task<IPAddress?> GetIpAddressAsync()
+        {
+            IPAddress? address = null;
+            if (IPAddress.TryParse(_Options.PrinterIP, out address))
+            {
+                return address;
+            }
+
+            else
+            {
+                try
+                {
+                    var addresses = await Dns.GetHostAddressesAsync(_Options.PrinterIP);
+
+                    return addresses.FirstOrDefault();
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+        }
     }
 }

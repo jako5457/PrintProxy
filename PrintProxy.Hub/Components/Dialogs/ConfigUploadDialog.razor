@@ -51,7 +51,7 @@
             return;
         }
         
-        var mainConfigEntry = JsonConvert.DeserializeObject<MainConfigEntry>(json);
+        var mainConfigEntry = JsonConvert.DeserializeObject<PrinterConfigEntry>(json);
 
         if (mainConfigEntry == null)
         {

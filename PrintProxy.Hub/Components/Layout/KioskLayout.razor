@@ -3,7 +3,7 @@
 @inject EmergencyManager _EmergencyManager
 @inject IDialogService Diag;
 
-<MudThemeProvider />
+<MudThemeProvider @bind-IsDarkMode="@dark" Theme="_theme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -30,9 +30,15 @@
     public bool emergency = false;
 
     IDialogReference dialog = null!;
+    private MudTheme _theme = new();
+
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public bool dark { get; set; } = false;
 
     protected override Task OnInitializedAsync()
     {
+        
         emergency = _EmergencyManager.GetState();
         _EmergencyManager.OnAlarm += Emergency;
         return base.OnInitializedAsync();

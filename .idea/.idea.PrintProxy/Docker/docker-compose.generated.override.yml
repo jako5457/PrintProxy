@@ -2,7 +2,11 @@
 services:
   printproxy.hub:
     build:
+<<<<<<< HEAD
+      context: "C:\\Users\\jako5457\\source\\repos\\jako5457\\PrintProxy"
+=======
       context: "C:\\Users\\Bruger\\source\\repos\\PrintProxy"
+>>>>>>> 0cffd061ec85bbe8175a881bef41ec0e3dd544a0
       dockerfile: "PrintProxy.Hub/Dockerfile"
       target: "base"
       args:
@@ -15,7 +19,11 @@ services:
     - "--mode=server"
     - "--frontend-port=57000"
     - "--backend-port=57200"
+<<<<<<< HEAD
+    - "--roslyn-worker-port=57404"
+=======
     - "--roslyn-worker-port=57401"
+>>>>>>> 0cffd061ec85bbe8175a881bef41ec0e3dd544a0
     - "--timeout=60"
     environment:
       ASPNETCORE_STATICWEBASSETS: "/app/bin/Debug/net10.0/PrintProxy.Hub.staticwebassets.runtime.CT.json"
@@ -24,6 +32,20 @@ services:
       RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     image: "printproxy.hub:dev"
     ports:
+<<<<<<< HEAD
+    - "127.0.0.1:57004:57000"
+    - "127.0.0.1:57204:57200"
+    - "127.0.0.1:57404:57404"
+    volumes:
+    - "C:\\Users\\jako5457\\source\\repos\\jako5457\\PrintProxy\\PrintProxy.Hub:/app:rw"
+    - "C:\\Users\\jako5457\\source\\repos\\jako5457\\PrintProxy:/src:rw"
+    - "C:\\Users\\jako5457\\.nuget\\packages:/home/app/.nuget/packages"
+    - "C:\\Users\\jako5457\\AppData\\Local\\JetBrains\\RiderRemoteDebugger\\2026.2.1\\\
+      Linux64:/opt/JetBrains/RiderDebuggerTools"
+    - "C:\\Program Files\\JetBrains\\JetBrains Rider 2026.2.0.2\\bin\\backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
+    - "C:\\Users\\jako5457\\AppData\\Local\\JetBrains\\Rider2026.2\\log\\DebuggerWorker\\\
+      JetBrains.Debugger.Worker.2026_8_28_09_11_01:/var/opt/JetBrains/RiderDebuggerTools:rw"
+=======
     - "127.0.0.1:57001:57000"
     - "127.0.0.1:57201:57200"
     - "127.0.0.1:57401:57401"
@@ -36,4 +58,5 @@ services:
     - "C:\\Program Files\\JetBrains\\JetBrains Rider 2026.2.0.2\\bin\\backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     - "C:\\Users\\Bruger\\AppData\\Local\\JetBrains\\Rider2026.2\\log\\DebuggerWorker\\\
       JetBrains.Debugger.Worker.2026_8_27_23_51_25:/var/opt/JetBrains/RiderDebuggerTools:rw"
+>>>>>>> 0cffd061ec85bbe8175a881bef41ec0e3dd544a0
     working_dir: "/app"

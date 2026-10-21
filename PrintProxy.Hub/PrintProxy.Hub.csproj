@@ -12,6 +12,9 @@
 
 
   <ItemGroup>
+    <PackageReference Include="BitzArt.Blazor.Cookies" Version="1.5.2" />
+    <PackageReference Include="BitzArt.Blazor.Cookies.Client" Version="1.5.2" />
+    <PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.5.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.9" />
@@ -19,7 +22,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,6 +32,7 @@
     <PackageReference Include="MudBlazor" Version="9.*" />
     <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="4.*" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
   </ItemGroup>
 
 

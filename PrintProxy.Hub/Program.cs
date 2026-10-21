@@ -12,11 +12,22 @@ using PrintProxy.Hub.Services.reservation;
 using PrintProxy.Hub.Services.Tags;
 using MQTTnet.AspNetCore;
 using MQTTnet;
+using BitzArt.Blazor.Cookies;
+using Serilog.AspNetCore;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+             .WriteTo.Console()
+             .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSerilog();
+
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+builder.AddBlazorCookies();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -38,6 +49,9 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddScoped<IPrinterThumbnailService,PrinterThumbnailService>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
+builder.Services.AddScoped<IServerOptionsService, ServerOptionsService>();
+builder.Services.AddScoped<ISiteRootService, SiteRootService>();
+
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
 builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
 builder.Services.AddScoped<ITagService, TagService>();
@@ -69,6 +83,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+
 
 builder.Services.AddAuthorizationCore();
 
