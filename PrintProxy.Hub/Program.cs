@@ -45,12 +45,13 @@ builder.AddSelfSignedSslCert();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddControllers();
 
 builder.Services.AddScoped<IPrinterThumbnailService,PrinterThumbnailService>();
 builder.Services.AddScoped<IPrinterFactory, PrinterFactory>();
 builder.Services.AddScoped<IPrinterConfigurationService, PrinterConfigurationService>();
 builder.Services.AddScoped<IServerOptionsService, ServerOptionsService>();
-builder.Services.AddScoped<ISiteRootService, SiteRootService>();
+builder.Services.AddScoped<IAppDataService, AppDataService>();
 
 builder.Services.AddScoped<IPrinterIndexService, PrinterIndexService>();
 builder.Services.AddScoped<IPrinterfileService, PrinterfileService>();
@@ -124,6 +125,7 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
