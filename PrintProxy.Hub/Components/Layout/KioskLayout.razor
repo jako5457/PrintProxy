@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject EmergencyManager _EmergencyManager
 @inject IDialogService Diag;
+@inject IServerOptionsService ServerOptionsService
 
 <MudThemeProvider @bind-IsDarkMode="@dark" Theme="_theme" />
 <MudPopoverProvider />
@@ -9,6 +10,7 @@
 <MudSnackbarProvider />
 <MudLayout>
     <MudAppBar Elevation="1">
+        <MudImage Src="@BrandImage" Elevation="0" Height="50" />
         <MudText Typo="Typo.h5" Class="ml-3">Printer Status</MudText>
         <MudSpacer />
     </MudAppBar>
@@ -32,6 +34,8 @@
     IDialogReference dialog = null!;
     private MudTheme _theme = new();
 
+    public string BrandImage = "";
+
     [SupplyParameterFromQuery]
     [Parameter]
     public bool dark { get; set; } = false;
@@ -41,6 +45,10 @@
         
         emergency = _EmergencyManager.GetState();
         _EmergencyManager.OnAlarm += Emergency;
+
+        var options = ServerOptionsService.GetOptions();
+
+        BrandImage = options.BrandImage;
         return base.OnInitializedAsync();
     }
 

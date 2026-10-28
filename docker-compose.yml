@@ -13,6 +13,7 @@ services:
       - PRINTER_CONFIG=/PrinterConfig/PrinterConfig.json
       - GCODE_FILE_DIR=/GcodeFiles
       - SERVER_OPTIONS=/PrinterConfig/ServerConfig.json
+      - SERVER_APPDATA=/PrinterConfig/Appdata
     volumes:
       - PrinterConfig:/PrinterConfig
       - GcodeFiles:/GcodeFiles:rw
