@@ -18,6 +18,7 @@ using Serilog;
 
 Log.Logger = new LoggerConfiguration()
              .WriteTo.Console()
+             .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database",Serilog.Events.LogEventLevel.Debug)
              .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
