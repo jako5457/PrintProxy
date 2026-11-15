@@ -16,12 +16,23 @@ using BitzArt.Blazor.Cookies;
 using Serilog.AspNetCore;
 using Serilog;
 
-Log.Logger = new LoggerConfiguration()
-             .WriteTo.Console()
-             .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database",Serilog.Events.LogEventLevel.Debug)
-             .CreateLogger();
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+string AppdataPath = builder.Configuration.GetValue<string>("SERVER_APPDATA") ?? string.Empty;
+
+Log.Logger = new LoggerConfiguration()
+             .WriteTo.File(
+                path: Path.Combine(AppdataPath,"ErrorLogs", "ErrorLog.txt"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 7,
+                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u}] {Message}{NewLine}{Exception}"
+             )
+             .WriteTo.Console(Serilog.Events.LogEventLevel.Information)
+             .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database", Serilog.Events.LogEventLevel.Error)
+             .CreateLogger();
 
 builder.Services.AddSerilog();
 
