@@ -18,7 +18,7 @@ namespace PrintProxy.Hub.Services
 
         public async Task BeginIndexingAsync()
         {
-            var scope = serviceProvider.CreateAsyncScope();
+            var scope = serviceProvider.CreateScope();
             ApplicationDbContext context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             IPrinterConfigurationService config = scope.ServiceProvider.GetRequiredService<IPrinterConfigurationService>();
             IPrinterFactory printerFactory = scope.ServiceProvider.GetRequiredService<IPrinterFactory>();
